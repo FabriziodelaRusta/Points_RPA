@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calcul des points - Roue Princière d'Allain</title>
+    <link rel="icon" type="image/png" href="https://fabriziodelarusta.github.io/icons/logo-RPA_bleu.png" />
+    <meta name="description" content="Calcul et suivi des points et randonnées des membres de la Roue Princière d'Allain avec synthèse hebdomadaire et export LibreOffice Calc." />
+    <meta property="og:title" content="Calcul des points - Roue Princière d'Allain" />
+    <meta property="og:description" content="Calcul et suivi des points et randonnées des membres de la Roue Princière d'Allain avec synthèse hebdomadaire et export LibreOffice Calc." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script>
+      // Ignore Vite HMR WebSocket connection errors as specified by environment constraints
+      window.addEventListener('error', function (event) {
+        if (
+          event.message &&
+          (event.message.includes('WebSocket') ||
+            event.message.includes('createWebSocketModuleRunnerTransport') ||
+            event.filename?.includes('@vite/client'))
+        ) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+      });
+      window.addEventListener('unhandledrejection', function (event) {
+        if (
+          event.reason &&
+          (String(event.reason).includes('WebSocket') ||
+            String(event.reason?.stack || '').includes('@vite/client'))
+        ) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        }
+      });
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+

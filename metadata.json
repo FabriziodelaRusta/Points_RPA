@@ -1,0 +1,6 @@
+{
+  "name": "Calcul des points - Roue Princière d'Allain",
+  "description": "Calcul et suivi des points et randonnées des membres de la Roue Princière d'Allain avec synthèse hebdomadaire et export LibreOffice Calc.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
