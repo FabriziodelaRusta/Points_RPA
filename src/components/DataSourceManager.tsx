@@ -7,7 +7,6 @@ import {
   RefreshCw,
   CheckCircle2,
   HelpCircle,
-  Play,
   Calendar,
   Layers,
   ChevronLeft,
@@ -22,7 +21,6 @@ interface DataSourceManagerProps {
   loadedFiles: { filename: string; count: number }[];
   isServerLocalFound: boolean;
   localDirPath: string;
-  onLoadSampleData: () => void;
   onFilesSelected: (files: FileList | File[]) => void;
   onDirectoryPick?: () => void;
   onCheckLocalServer: () => void;
@@ -42,7 +40,6 @@ export const DataSourceManager: React.FC<DataSourceManagerProps> = ({
   loadedFiles,
   isServerLocalFound,
   localDirPath,
-  onLoadSampleData,
   onFilesSelected,
   onDirectoryPick,
   onCheckLocalServer,
@@ -269,16 +266,6 @@ export const DataSourceManager: React.FC<DataSourceManagerProps> = ({
             </div>
           </button>
 
-          {/* Quick Demo Data Button */}
-          <button
-            type="button"
-            onClick={onLoadSampleData}
-            className="px-3 py-1.5 text-xs font-semibold bg-emerald-700 hover:bg-emerald-800 text-white rounded transition-colors flex items-center gap-1.5 shadow-xs cursor-pointer"
-          >
-            <Play className="w-3.5 h-3.5" />
-            Charger données démo ({seasonInfo.expectedFiles.join(' & ')})
-          </button>
-
           <button
             type="button"
             onClick={onCheckLocalServer}
@@ -292,7 +279,7 @@ export const DataSourceManager: React.FC<DataSourceManagerProps> = ({
       </div>
 
       {/* Currently loaded files indicator */}
-      {loadedFiles.length > 0 && (
+      {loadedFiles.length > 0 ? (
         <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-slate-500 font-medium">Fichiers analysés :</span>
@@ -308,16 +295,14 @@ export const DataSourceManager: React.FC<DataSourceManagerProps> = ({
           </div>
 
           <div>
-            {isCustomData ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-900 border border-emerald-300 rounded font-medium text-[11px]">
-                <CheckCircle2 className="w-3 h-3 text-emerald-700" /> Vos fichiers CSV restent conservés au changement de saison
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[11px]">
-                Jeu de test démo actif
-              </span>
-            )}
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-900 border border-emerald-300 rounded font-medium text-[11px]">
+              <CheckCircle2 className="w-3 h-3 text-emerald-700" /> Vos fichiers CSV restent conservés au changement de saison
+            </span>
           </div>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs text-slate-500 italic">
+          <span>Aucun fichier chargé pour le moment. Cliquez sur « Sélectionner CVS » pour importer vos données de sorties.</span>
         </div>
       )}
     </div>

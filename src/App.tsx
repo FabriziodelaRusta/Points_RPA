@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { RandoRecord, MemberSummary, WeekInfo, SeasonInfo } from './types/rpa';
 import { getSeasonInfo } from './utils/dateAndWeek';
 import { parseRpaCsv, processAllRecords } from './utils/csvParser';
-import { SAMPLE_2025_CSV, SAMPLE_2026_CSV, SAMPLE_2027_CSV } from './utils/sampleData';
 import { MemberSelector } from './components/MemberSelector';
 import { DataSourceManager } from './components/DataSourceManager';
 import { LibreCalcTable } from './components/LibreCalcTable';
@@ -24,7 +23,7 @@ export default function App() {
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [referenceDate, setReferenceDate] = useState<Date>(new Date());
   const [loadedFiles, setLoadedFiles] = useState<{ filename: string; content: string; count: number }[]>([]);
-  const [isCustomData, setIsCustomData] = useState<boolean>(false);
+  const [isCustomData, setIsCustomData] = useState<boolean>(true);
   const [selectedMemberName, setSelectedMemberName] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'calc' | 'chronological'>('calc');
   const [isServerLocalFound, setIsServerLocalFound] = useState<boolean>(false);
@@ -38,63 +37,8 @@ export default function App() {
     return getSeasonInfo(selectedYear, referenceDate);
   }, [selectedYear, referenceDate]);
 
-  // Load sample dataset matching the selected season (du 01/11/(selectedYear - 1) au 31/10/selectedYear)
-  const loadSampleDataset = () => {
-    const filesToLoad: { filename: string; content: string }[] = [];
-
-    if (selectedYear === 2026) {
-      filesToLoad.push(
-        {
-          filename: `2025.csv`,
-          content: SAMPLE_2025_CSV,
-        },
-        {
-          filename: `2026.csv`,
-          content: SAMPLE_2026_CSV,
-        }
-      );
-    } else if (selectedYear === 2025) {
-      filesToLoad.push(
-        {
-          filename: `2024.csv`,
-          content: SAMPLE_2025_CSV,
-        },
-        {
-          filename: `2025.csv`,
-          content: SAMPLE_2025_CSV,
-        }
-      );
-    } else {
-      filesToLoad.push(
-        {
-          filename: `${selectedYear - 1}.csv`,
-          content: SAMPLE_2025_CSV,
-        },
-        {
-          filename: `${selectedYear}.csv`,
-          content: SAMPLE_2026_CSV,
-        }
-      );
-    }
-
-    const processed = filesToLoad.map((f) => {
-      const records = parseRpaCsv(f.content, f.filename);
-      return {
-        filename: f.filename,
-        content: f.content,
-        count: records.length,
-      };
-    });
-
-    setIsCustomData(false);
-    setLoadedFiles(processed);
-    setStatusMessage(
-      `Données exemples de la saison ${selectedYear} chargées (${processed.map((p) => p.filename).join(' et ')}) : période du 01/11/${selectedYear - 1} au 31/10/${selectedYear}.`
-    );
-  };
-
-  // Attempt to check and fetch files from server if running locally on Sabine's machine
-  const checkLocalServerFiles = async () => {
+  // Check local server connection (optionally fetch files if explicitly requested via refresh button)
+  const checkLocalServerFiles = async (loadIfFound = false) => {
     setIsLoading(true);
     try {
       const checkRes = await fetch(`/api/rpa/check?dir=${encodeURIComponent(localDirPath)}`);
@@ -102,7 +46,7 @@ export default function App() {
         const checkData = await checkRes.json();
         setIsServerLocalFound(checkData.dirExists);
 
-        if (checkData.dirExists) {
+        if (loadIfFound && checkData.dirExists) {
           const readRes = await fetch(`/api/rpa/read-files?dir=${encodeURIComponent(localDirPath)}&year=${selectedYear}`);
           if (readRes.ok) {
             const readData = await readRes.json();
@@ -129,26 +73,18 @@ export default function App() {
     } catch {
       setIsServerLocalFound(false);
     }
-
-    // Default to sample dataset if no files loaded yet
-    if (loadedFiles.length === 0) {
-      loadSampleDataset();
-    }
     setIsLoading(false);
   };
 
-  // Run on mount
+  // Run on mount - check folder availability, but NO files are loaded automatically on initial load
   useEffect(() => {
-    checkLocalServerFiles();
+    checkLocalServerFiles(false);
   }, []);
 
   // When selected year changes:
-  // If using demo data, reload sample data for the new season.
-  // If user uploaded their own CSVs, PRESERVE their files and re-filter!
+  // If user uploaded their own CSVs, PRESERVE their files and re-filter! No demo data is loaded.
   useEffect(() => {
-    if (!isCustomData) {
-      loadSampleDataset();
-    } else {
+    if (loadedFiles.length > 0) {
       setStatusMessage(
         `Saison ${selectedYear} appliquée à vos fichiers importés (${loadedFiles.map((f) => f.filename).join(', ')}).`
       );
@@ -341,10 +277,9 @@ export default function App() {
           loadedFiles={loadedFiles}
           isServerLocalFound={isServerLocalFound}
           localDirPath={localDirPath}
-          onLoadSampleData={loadSampleDataset}
           onFilesSelected={handleFilesSelected}
           onDirectoryPick={handleDirectoryPick}
-          onCheckLocalServer={checkLocalServerFiles}
+          onCheckLocalServer={() => checkLocalServerFiles(true)}
           isLoading={isLoading}
           referenceDate={referenceDate}
           onChangeReferenceDate={setReferenceDate}
@@ -456,7 +391,7 @@ export default function App() {
 
       {/* Version Number centered at bottom as strictly requested */}
       <footer className="text-center py-6 text-slate-500 font-mono text-sm tracking-wide border-t border-slate-200/80 bg-white/50">
-        v1.2 - FabriziodelaRusta
+        v1.3 - FabriziodelaRusta
       </footer>
     </div>
   );

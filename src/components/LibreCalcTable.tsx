@@ -559,11 +559,20 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
               );
             })}
 
-            {/* Empty state if filtered */}
+            {/* Empty state if filtered or no files loaded */}
             {processedMembers.length === 0 && (
               <tr>
-                <td colSpan={weeks.length + 5} className="text-center py-8 text-slate-400 text-sm">
-                  Aucun membre ne correspond à votre filtre "{searchTerm}".
+                <td colSpan={weeks.length + 5} className="text-center py-10 text-slate-500 text-sm">
+                  {members.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center gap-1.5 py-4">
+                      <span className="font-semibold text-slate-700">Aucun fichier de sorties chargé</span>
+                      <span className="text-xs text-slate-500">
+                        Veuillez cliquer sur « Sélectionner CVS » ci-dessus pour importer vos fichiers générés via Vélo-liberté.
+                      </span>
+                    </div>
+                  ) : (
+                    <span>Aucun membre ne correspond à votre filtre "{searchTerm}".</span>
+                  )}
                 </td>
               </tr>
             )}
