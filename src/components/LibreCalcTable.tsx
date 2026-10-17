@@ -143,6 +143,9 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
             <p className="text-[11px] text-emerald-200">
               Roue Princière d'Allain · Synthèse hebdomadaire, total points, randos et km
             </p>
+            <p className="text-[11px] text-white font-medium">
+              Sans flèches - Relais - Voyages et autres
+            </p>
           </div>
         </div>
 
