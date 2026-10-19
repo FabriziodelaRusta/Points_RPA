@@ -320,7 +320,7 @@ export const SeasonStats: React.FC<SeasonStatsProps> = ({
               <Compass className="w-3.5 h-3.5" />
             </div>
             <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-              Flèches-Relais, Voyages & Séjours · Fichiers FR ou VOY
+              Flèches - Relais et autres, Voyages & Séjours · Fichiers FR ou VOY
             </h4>
           </div>
           <span className="text-[11px] text-slate-500 font-mono self-start sm:self-auto">
@@ -331,22 +331,17 @@ export const SeasonStats: React.FC<SeasonStatsProps> = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {/* 1. Flèches - Relais */}
+          {/* 1. Flèches - Relais et autres */}
           <div className="bg-purple-50/70 border border-purple-200 rounded-lg p-3.5 flex flex-col justify-between hover:bg-purple-50 transition-colors">
             <div className="flex items-center justify-between text-purple-700 mb-1.5">
               <span className="text-[11px] font-bold uppercase tracking-wider">
-                Flèches - Relais
+                Flèches - Relais et autres
               </span>
               <Compass className="w-4 h-4 text-purple-600" />
             </div>
             <div>
               <div className="text-2xl font-black text-purple-950 font-mono">
                 {specialStats.flechesRelais.total}
-              </div>
-              <div className="text-xs font-medium text-purple-800 mt-0.5">
-                {specialStats.flechesRelais.total > 1
-                  ? 'Total flèches-relais effectuées'
-                  : 'Total flèche-relais effectuée'}
               </div>
               <div className="mt-2 pt-2 border-t border-purple-200/60 flex items-center justify-between text-[11px] text-purple-700">
                 <span>
@@ -361,10 +356,7 @@ export const SeasonStats: React.FC<SeasonStatsProps> = ({
           </div>
 
           {/* 2. Voyages */}
-          <div
-            className="bg-sky-50/70 border border-sky-200 rounded-lg p-3.5 flex flex-col justify-between hover:bg-sky-50 transition-colors"
-            title="Chaque voyage n'est compté qu'une fois par personne si le nom du voyage est identique (les km de toutes les étapes sont cumulés)"
-          >
+          <div className="bg-sky-50/70 border border-sky-200 rounded-lg p-3.5 flex flex-col justify-between hover:bg-sky-50 transition-colors">
             <div className="flex items-center justify-between text-sky-700 mb-1.5">
               <span className="text-[11px] font-bold uppercase tracking-wider">
                 Voyages
@@ -374,11 +366,6 @@ export const SeasonStats: React.FC<SeasonStatsProps> = ({
             <div>
               <div className="text-2xl font-black text-sky-950 font-mono">
                 {specialStats.voyages.total}
-              </div>
-              <div className="text-xs font-medium text-sky-800 mt-0.5">
-                {specialStats.voyages.total > 1
-                  ? 'Voyages distincts par personne'
-                  : 'Voyage distinct par personne'}
               </div>
               <div className="mt-2 pt-2 border-t border-sky-200/60 flex items-center justify-between text-[11px] text-sky-700">
                 <span>
@@ -393,10 +380,7 @@ export const SeasonStats: React.FC<SeasonStatsProps> = ({
           </div>
 
           {/* 3. Séjours */}
-          <div
-            className="bg-amber-50/70 border border-amber-200 rounded-lg p-3.5 flex flex-col justify-between hover:bg-amber-50 transition-colors"
-            title="Chaque séjour n'est compté qu'une fois par personne si le nom du séjour est identique (les km de toutes les étapes sont cumulés)"
-          >
+          <div className="bg-amber-50/70 border border-amber-200 rounded-lg p-3.5 flex flex-col justify-between hover:bg-amber-50 transition-colors">
             <div className="flex items-center justify-between text-amber-700 mb-1.5">
               <span className="text-[11px] font-bold uppercase tracking-wider">
                 Séjours
@@ -406,11 +390,6 @@ export const SeasonStats: React.FC<SeasonStatsProps> = ({
             <div>
               <div className="text-2xl font-black text-amber-950 font-mono">
                 {specialStats.sejours.total}
-              </div>
-              <div className="text-xs font-medium text-amber-800 mt-0.5">
-                {specialStats.sejours.total > 1
-                  ? 'Séjours distincts par personne'
-                  : 'Séjour distinct par personne'}
               </div>
               <div className="mt-2 pt-2 border-t border-amber-200/60 flex items-center justify-between text-[11px] text-amber-700">
                 <span>

@@ -52,12 +52,18 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
       m.memberName.toLowerCase().includes(searchTerm.toLowerCase().trim())
     );
 
+    const getGrandTotalKm = (m: MemberSummary) => {
+      const specialsKm =
+        (m.specials?.frKm || 0) + (m.specials?.voyageKm || 0) + (m.specials?.sejourKm || 0);
+      return Math.round((m.totalKm + specialsKm) * 10) / 10;
+    };
+
     result = [...result].sort((a, b) => {
       if (sortBy === 'name_asc') return a.memberName.localeCompare(b.memberName, 'fr');
       if (sortBy === 'name_desc') return b.memberName.localeCompare(a.memberName, 'fr');
       if (sortBy === 'points_desc') return b.activeWeeksCount - a.activeWeeksCount;
       if (sortBy === 'randos_desc') return b.totalRandos - a.totalRandos;
-      if (sortBy === 'km_desc') return b.totalKm - a.totalKm;
+      if (sortBy === 'km_desc') return getGrandTotalKm(b) - getGrandTotalKm(a);
       return 0;
     });
 
@@ -69,28 +75,49 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
     let currentCalcRow = 2;
     return processedMembers.map((member) => {
       const memberRowIndex = currentCalcRow++;
+
       const hasFr = Boolean(member.specials && member.specials.frCount > 0);
+      const voyageTrips = member.specials?.voyageTrips || [];
+      const sejourTrips = member.specials?.sejourTrips || [];
+
+      // Si dans le tableau, pour une personne il y a plus d'une ligne à afficher :
+      const hasMultipleRows = hasFr || voyageTrips.length > 0 || sejourTrips.length > 0;
+
+      // On ajoute pour cette personne une sous-ligne avec "Randos" comme description du bouton et le total des randos et total km
+      const randosRowIndex = hasMultipleRows ? currentCalcRow++ : null;
+
       const frRowIndex = hasFr ? currentCalcRow++ : null;
 
       // Une sous-ligne par voyage distinct pour cette personne
-      const voyageTripsWithRows = (member.specials?.voyageTrips || []).map((vt) => ({
+      const voyageTripsWithRows = voyageTrips.map((vt) => ({
         ...vt,
         rowIndex: currentCalcRow++,
       }));
 
       // Une sous-ligne par séjour distinct pour cette personne
-      const sejourTripsWithRows = (member.specials?.sejourTrips || []).map((st) => ({
+      const sejourTripsWithRows = sejourTrips.map((st) => ({
         ...st,
         rowIndex: currentCalcRow++,
       }));
 
+      // Sur la ligne avec le nom, le total km représente le total des randos, flèches relais et autres, voyage et séjours
+      const grandTotalKm = Math.round(
+        (member.totalKm +
+          (member.specials?.frKm || 0) +
+          (member.specials?.voyageKm || 0) +
+          (member.specials?.sejourKm || 0)) * 10
+      ) / 10;
+
       return {
         member,
         memberRowIndex,
+        hasMultipleRows,
+        randosRowIndex,
         hasFr,
         frRowIndex,
         voyageTripsWithRows,
         sejourTripsWithRows,
+        grandTotalKm,
         lastRowIndex: currentCalcRow - 1,
       };
     });
@@ -136,7 +163,19 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
   }, [members]);
 
   const totalKmOverall = useMemo(() => {
-    return Math.round(members.reduce((sum, m) => sum + m.totalKm, 0) * 10) / 10;
+    return (
+      Math.round(
+        members.reduce(
+          (sum, m) =>
+            sum +
+            m.totalKm +
+            (m.specials?.frKm || 0) +
+            (m.specials?.voyageKm || 0) +
+            (m.specials?.sejourKm || 0),
+          0
+        ) * 10
+      ) / 10
+    );
   }, [members]);
 
   const handleCellClick = (
@@ -438,10 +477,13 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
               const {
                 member,
                 memberRowIndex,
+                hasMultipleRows,
+                randosRowIndex,
                 hasFr,
                 frRowIndex,
                 voyageTripsWithRows,
                 sejourTripsWithRows,
+                grandTotalKm,
               } = item;
               const isSelected = selectedMemberName === member.memberName;
 
@@ -533,7 +575,7 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
                       onClick={() =>
                         handleCellClick(
                           `D${memberRowIndex}`,
-                          `=SOMME_KM(${memberRowIndex}) [Distance totale: ${member.totalKm} km]`,
+                          `=SOMME_KM(${memberRowIndex}) [Distance totale globale: ${grandTotalKm} km]`,
                           member.memberName
                         )
                       }
@@ -542,9 +584,9 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
                           ? 'bg-emerald-200 text-emerald-900'
                           : 'bg-emerald-50/70 text-emerald-900 hover:bg-emerald-100'
                       }`}
-                      title={`${member.memberName} a parcouru ${member.totalKm} km au total`}
+                      title={`${member.memberName} a parcouru ${grandTotalKm} km au total (randos + flèches relais et autres + voyages + séjours)`}
                     >
-                      {member.totalKm}
+                      {grandTotalKm}
                     </td>
 
                     {/* Week Columns with 'x' (Col E..N) */}
@@ -609,7 +651,100 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
                     })}
                   </tr>
 
-                  {/* Ligne Flèches - Relais si présente dans le fichier FR ou VOY */}
+                  {/* Sous-ligne dédiée « Randos » si la personne a plus d'une ligne à afficher */}
+                  {hasMultipleRows && randosRowIndex !== null && (
+                    <tr
+                      key={`${member.memberName}-randos`}
+                      className={`border-b border-emerald-100 transition-colors ${
+                        isSelected ? 'bg-emerald-100/70' : 'bg-emerald-50/40 hover:bg-emerald-50'
+                      }`}
+                    >
+                      <td className="px-1 py-1.5 text-center font-mono text-[11px] bg-slate-200 text-slate-500 border-r border-slate-300 sticky left-0 z-30 select-none">
+                        {randosRowIndex}
+                      </td>
+                      <td
+                        onClick={() =>
+                          handleCellClick(
+                            `A${randosRowIndex}`,
+                            `${member.memberName} — Randos`,
+                            member.memberName
+                          )
+                        }
+                        className="px-3 py-1.5 font-medium border-r border-slate-300 sticky left-9 z-20 cursor-pointer bg-emerald-50/60 pl-6"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-emerald-600 font-bold">↳</span>
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
+                            Randos
+                          </span>
+                        </div>
+                      </td>
+                      <td
+                        className="px-2 py-1.5 text-center font-mono text-slate-400 border-r border-slate-300 sticky left-[226px] z-20 bg-emerald-50/30 text-[11px]"
+                        title="Points comptabilisés sur la ligne principale"
+                      >
+                        —
+                      </td>
+                      <td
+                        onClick={() =>
+                          handleCellClick(
+                            `C${randosRowIndex}`,
+                            `Total randos: ${member.totalRandos}`,
+                            member.memberName
+                          )
+                        }
+                        className="px-2 py-1.5 text-center font-bold font-mono text-emerald-900 border-r border-slate-300 sticky left-[301px] z-20 bg-emerald-100/70 cursor-pointer"
+                        title={`${member.memberName} a ${member.totalRandos} randonnée(s)`}
+                      >
+                        {member.totalRandos}
+                      </td>
+                      <td
+                        onClick={() =>
+                          handleCellClick(
+                            `D${randosRowIndex}`,
+                            `Total km randos: ${member.totalKm} km`,
+                            member.memberName
+                          )
+                        }
+                        className="px-2 py-1.5 text-center font-bold font-mono text-emerald-900 border-r-2 border-emerald-300 sticky left-[376px] z-20 bg-emerald-100/70 cursor-pointer"
+                        title={`${member.totalKm} km au total en randonnées pour ${member.memberName}`}
+                      >
+                        {member.totalKm}
+                      </td>
+                      {weeks.map((week) => {
+                        const weeklyRandos = member.participationsByWeek[week.weekKey] || [];
+                        const hasWeekly = weeklyRandos.length > 0;
+                        const weekKm = Math.round(weeklyRandos.reduce((s, p) => s + p.km, 0) * 10) / 10;
+                        return (
+                          <td
+                            key={week.weekKey}
+                            onClick={() =>
+                              handleCellClick(
+                                `${week.colLetter}${randosRowIndex}`,
+                                hasWeekly
+                                  ? `Randos: ${weekKm > 0 ? `${weekKm} km` : 'x'} (${weeklyRandos.map((p) => `${p.dateStr} - ${p.randoName}${p.km > 0 ? ` [${p.km} km]` : ''}`).join('; ')})`
+                                  : '',
+                                member.memberName,
+                                week.headerLabel
+                              )
+                            }
+                            className="px-1.5 py-1 text-center border-r border-emerald-100/70 bg-emerald-50/20 text-[10px] cursor-pointer hover:bg-emerald-100/50"
+                          >
+                            {hasWeekly ? (
+                              <span
+                                className="inline-block px-1 py-0.5 rounded font-mono font-bold text-[9px] bg-emerald-200/80 text-emerald-900"
+                                title={weeklyRandos.map((p) => `${p.dateStr}: ${p.randoName}${p.km > 0 ? ` (${p.km} km)` : ''}`).join('; ')}
+                              >
+                                {weekKm > 0 ? `${weekKm}km` : 'x'}
+                              </span>
+                            ) : null}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  )}
+
+                  {/* Ligne Flèches - Relais et autres si présente dans le fichier FR ou VOY */}
                   {hasFr && (
                     <tr
                       key={`${member.memberName}-fr`}
@@ -624,7 +759,7 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
                         onClick={() =>
                           handleCellClick(
                             `A${frRowIndex}`,
-                            `${member.memberName} — Flèches-Relais : ${member.specials!.frRecords.map((r) => `${r.randoName} (${r.km} km)`).join(' ; ')}`,
+                            `${member.memberName} — Flèches - Relais et autres`,
                             member.memberName
                           )
                         }
@@ -632,20 +767,14 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
                       >
                         <div className="flex items-center gap-1.5">
                           <span className="text-purple-600 font-bold">↳</span>
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
-                            Flèches - Relais
-                          </span>
-                          <span
-                            className="text-[10px] text-purple-700 truncate max-w-[130px] hidden sm:inline"
-                            title={member.specials!.frRecords.map((r) => `${r.dateStr}: ${r.randoName} (${r.km} km)`).join(', ')}
-                          >
-                            ({member.specials!.frRecords.map((r) => r.randoName).join(', ')})
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200 shrink-0">
+                            Flèches - Relais et autres
                           </span>
                         </div>
                       </td>
                       <td
                         className="px-2 py-1.5 text-center font-mono text-slate-400 border-r border-slate-300 sticky left-[226px] z-20 bg-purple-50/40 text-[11px]"
-                        title="Flèches-Relais hors points hebdomadaires"
+                        title="Flèches - Relais et autres hors points hebdomadaires"
                       >
                         —
                       </td>
@@ -653,12 +782,12 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
                         onClick={() =>
                           handleCellClick(
                             `C${frRowIndex}`,
-                            `Total flèches-relais: ${member.specials!.frCount}`,
+                            `Total flèches - relais et autres: ${member.specials!.frCount}`,
                             member.memberName
                           )
                         }
                         className="px-2 py-1.5 text-center font-bold font-mono text-purple-900 border-r border-slate-300 sticky left-[301px] z-20 bg-purple-100/70 cursor-pointer"
-                        title={`${member.memberName} a ${member.specials!.frCount} entrée(s) Flèches-Relais`}
+                        title={`${member.memberName} a ${member.specials!.frCount} entrée(s) Flèches - Relais et autres`}
                       >
                         {member.specials!.frCount}
                       </td>
@@ -666,12 +795,12 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
                         onClick={() =>
                           handleCellClick(
                             `D${frRowIndex}`,
-                            `Total km flèches-relais: ${member.specials!.frKm} km`,
+                            `Total km flèches - relais et autres: ${member.specials!.frKm} km`,
                             member.memberName
                           )
                         }
                         className="px-2 py-1.5 text-center font-bold font-mono text-purple-900 border-r-2 border-purple-300 sticky left-[376px] z-20 bg-purple-100/70 cursor-pointer"
-                        title={`${member.specials!.frKm} km au total en Flèches-Relais`}
+                        title={`${member.specials!.frKm} km au total en Flèches - Relais et autres`}
                       >
                         {member.specials!.frKm}
                       </td>

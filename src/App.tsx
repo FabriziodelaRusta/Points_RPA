@@ -198,7 +198,7 @@ export default function App() {
             />
             <div>
               <h1 className="text-lg sm:text-xl font-bold text-slate-900 leading-tight">
-                Calcul des points pour les membres de la Roue Princière d'Allain
+                Calcul des points et des km pour les membres de la Roue Princière d'Allain
               </h1>
               <p className="text-xs text-slate-500 flex items-center gap-2">
                 <span>Club cyclotourisme & randonnées</span>
@@ -391,7 +391,7 @@ export default function App() {
 
       {/* Version Number centered at bottom as strictly requested */}
       <footer className="text-center py-6 text-slate-500 font-mono text-sm tracking-wide border-t border-slate-200/80 bg-white/50">
-        v1.5 - FabriziodelaRusta
+        v1.7 - FabriziodelaRusta
       </footer>
     </div>
   );

@@ -17,6 +17,12 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({
 }) => {
   const selectedMember = members.find((m) => m.memberName === selectedMemberName);
 
+  const getMemberGrandTotalKm = (m: MemberSummary) => {
+    const specialsKm =
+      (m.specials?.frKm || 0) + (m.specials?.voyageKm || 0) + (m.specials?.sejourKm || 0);
+    return Math.round((m.totalKm + specialsKm) * 10) / 10;
+  };
+
   return (
     <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-xs">
       <div>
@@ -25,7 +31,7 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({
           htmlFor="member-dropdown"
           className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5"
         >
-          Liste déroulante des membres · Randos, points & km
+          Liste déroulante des membres · Randos, points & km (total global)
         </label>
         <div className="relative">
           <select
@@ -35,11 +41,14 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({
             className="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-md px-3 py-2.5 pr-8 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors font-medium cursor-pointer"
           >
             <option value="">-- Tous les membres ({members.length} inscrits) --</option>
-            {members.map((m) => (
-              <option key={m.memberName} value={m.memberName}>
-                {m.memberName} — {m.totalRandos} rando{m.totalRandos > 1 ? 's' : ''} · {m.activeWeeksCount} point{m.activeWeeksCount > 1 ? 's' : ''} · {m.totalKm} km
-              </option>
-            ))}
+            {members.map((m) => {
+              const grandTotalKm = getMemberGrandTotalKm(m);
+              return (
+                <option key={m.memberName} value={m.memberName}>
+                  {m.memberName} — {m.totalRandos} rando{m.totalRandos > 1 ? 's' : ''} · {m.activeWeeksCount} point{m.activeWeeksCount > 1 ? 's' : ''} · {grandTotalKm} km
+                </option>
+              );
+            })}
           </select>
         </div>
       </div>
@@ -61,12 +70,39 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({
                   <span className="text-xs font-semibold px-2 py-0.5 bg-slate-200 text-slate-800 rounded-full">
                     {selectedMember.totalRandos} rando{selectedMember.totalRandos > 1 ? 's' : ''}
                   </span>
-                  <span className="text-xs font-semibold px-2 py-0.5 bg-emerald-200/70 text-emerald-900 rounded-full">
-                    {selectedMember.totalKm} km
+                  <span
+                    className="text-xs font-semibold px-2 py-0.5 bg-emerald-200/70 text-emerald-900 rounded-full"
+                    title="Total km : randos + séjours + voyages + flèches et relais et autres"
+                  >
+                    {getMemberGrandTotalKm(selectedMember)} km total
                   </span>
                 </h3>
                 <p className="text-xs text-slate-500">
                   {selectedMember.totalRandos} participation{selectedMember.totalRandos > 1 ? 's' : ''} sur {selectedMember.activeWeeksCount} semaine{selectedMember.activeWeeksCount > 1 ? 's' : ''}
+                  {Boolean(
+                    selectedMember.specials &&
+                      (selectedMember.specials.frKm > 0 ||
+                        selectedMember.specials.voyageKm > 0 ||
+                        selectedMember.specials.sejourKm > 0)
+                  ) && (
+                    <span className="ml-1 text-slate-400">
+                      (dont {selectedMember.totalKm} km randos,{' '}
+                      {[
+                        selectedMember.specials?.frKm
+                          ? `${selectedMember.specials.frKm} km flèches/relais`
+                          : null,
+                        selectedMember.specials?.voyageKm
+                          ? `${selectedMember.specials.voyageKm} km voyages`
+                          : null,
+                        selectedMember.specials?.sejourKm
+                          ? `${selectedMember.specials.sejourKm} km séjours`
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(', ')}
+                      )
+                    </span>
+                  )}
                 </p>
               </div>
             </div>

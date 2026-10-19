@@ -26,11 +26,23 @@ export function buildSpreadsheetData(members: MemberSummary[], weeks: WeekInfo[]
 
   // Each member row
   members.forEach((m) => {
+    const hasFr = Boolean(m.specials && m.specials.frCount > 0);
+    const voyageTrips = m.specials?.voyageTrips || [];
+    const sejourTrips = m.specials?.sejourTrips || [];
+    const hasMultipleRows = hasFr || voyageTrips.length > 0 || sejourTrips.length > 0;
+
+    const grandTotalKm = Math.round(
+      (m.totalKm +
+        (m.specials?.frKm || 0) +
+        (m.specials?.voyageKm || 0) +
+        (m.specials?.sejourKm || 0)) * 10
+    ) / 10;
+
     const row: (string | number)[] = [
       m.memberName,
       m.activeWeeksCount, // Total points (x)
       m.totalRandos, // Total randos
-      m.totalKm, // Total km
+      hasMultipleRows ? grandTotalKm : m.totalKm, // Total km (grand total si sous-lignes)
     ];
     weeks.forEach((w) => {
       const participations = m.participationsByWeek[w.weekKey];
@@ -42,11 +54,31 @@ export function buildSpreadsheetData(members: MemberSummary[], weeks: WeekInfo[]
     });
     rows.push(row);
 
+    // Sous-ligne Randos si plusieurs lignes à afficher
+    if (hasMultipleRows) {
+      const randosRow: (string | number)[] = [
+        '  ↳ Randos',
+        '',
+        m.totalRandos,
+        m.totalKm,
+      ];
+      weeks.forEach((w) => {
+        const weeklyRandos = m.participationsByWeek[w.weekKey] || [];
+        if (weeklyRandos.length > 0) {
+          const weekKm = Math.round(weeklyRandos.reduce((s, p) => s + p.km, 0) * 10) / 10;
+          randosRow.push(weekKm > 0 ? `${weekKm}km` : 'x');
+        } else {
+          randosRow.push('');
+        }
+      });
+      rows.push(randosRow);
+    }
+
     // Sub-rows if special activities exist
     if (m.specials) {
       if (m.specials.frCount > 0) {
         const frRow: (string | number)[] = [
-          '  ↳ Flèches - Relais',
+          '  ↳ Flèches - Relais et autres',
           '',
           m.specials.frCount,
           m.specials.frKm,
@@ -93,7 +125,18 @@ export function buildSpreadsheetData(members: MemberSummary[], weeks: WeekInfo[]
   // Summary rows at the bottom
   const totalPoints = members.reduce((sum, m) => sum + m.activeWeeksCount, 0);
   const totalRandos = members.reduce((sum, m) => sum + m.totalRandos, 0);
-  const totalKm = Math.round(members.reduce((sum, m) => sum + m.totalKm, 0) * 10) / 10;
+  const totalKm =
+    Math.round(
+      members.reduce(
+        (sum, m) =>
+          sum +
+          m.totalKm +
+          (m.specials?.frKm || 0) +
+          (m.specials?.voyageKm || 0) +
+          (m.specials?.sejourKm || 0),
+        0
+      ) * 10
+    ) / 10;
 
   // 1. Ligne dédiée pour les totaux des colonnes Total (Points, Randos, Km)
   const totalColumnsRow: (string | number)[] = [
