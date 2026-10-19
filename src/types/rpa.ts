@@ -12,6 +12,35 @@ export interface RandoRecord {
   weekKey: string;
   rawLine: string;
   km: number; // distance in km
+  isSpecialActivity?: boolean;
+  specialType?: 'FR' | 'VOYAGE' | 'SEJOUR';
+  tripName?: string; // Nom extrait du voyage/séjour (ex: col 5 après 'Voyage :')
+  rawCol5?: string; // Champ 5 brut du fichier CSV
+}
+
+export interface DistinctTripGroup {
+  tripType: 'FR' | 'VOYAGE' | 'SEJOUR';
+  tripName: string; // Ex: "Corse", "Cantal" (nom brut nettoyé pour affichage)
+  tripKey: string; // Clé normalisée pour regrouper (ex: "corse")
+  count: number; // Nombre d'entrées / étapes pour ce voyage/séjour (ex: 10)
+  km: number; // Total km parcourus sur ce voyage/séjour
+  records: RandoRecord[];
+  weeklyKm: Record<string, number>;
+}
+
+export interface MemberSpecialSummary {
+  frCount: number;
+  frKm: number;
+  frRecords: RandoRecord[];
+  frTrips?: DistinctTripGroup[];
+  voyageCount: number;
+  voyageKm: number;
+  voyageRecords: RandoRecord[];
+  voyageTrips: DistinctTripGroup[];
+  sejourCount: number;
+  sejourKm: number;
+  sejourRecords: RandoRecord[];
+  sejourTrips: DistinctTripGroup[];
 }
 
 export interface WeekInfo {
@@ -33,6 +62,7 @@ export interface MemberSummary {
   totalKm: number; // total km traveled
   participationsByWeek: Record<string, RandoRecord[]>;
   records: RandoRecord[];
+  specials?: MemberSpecialSummary;
 }
 
 export interface SeasonInfo {

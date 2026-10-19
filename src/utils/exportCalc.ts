@@ -41,6 +41,53 @@ export function buildSpreadsheetData(members: MemberSummary[], weeks: WeekInfo[]
       }
     });
     rows.push(row);
+
+    // Sub-rows if special activities exist
+    if (m.specials) {
+      if (m.specials.frCount > 0) {
+        const frRow: (string | number)[] = [
+          '  ↳ Flèches - Relais',
+          '',
+          m.specials.frCount,
+          m.specials.frKm,
+        ];
+        weeks.forEach((w) => {
+          const frs = m.specials!.frRecords.filter((r) => r.weekKey === w.weekKey);
+          frRow.push(frs.length > 0 ? `FR (${frs.reduce((s, r) => s + r.km, 0)}km)` : '');
+        });
+        rows.push(frRow);
+      }
+      if (m.specials.voyageTrips && m.specials.voyageTrips.length > 0) {
+        m.specials.voyageTrips.forEach((vt) => {
+          const voyRow: (string | number)[] = [
+            `  ↳ Voyage : ${vt.tripName}`,
+            '',
+            vt.count,
+            vt.km,
+          ];
+          weeks.forEach((w) => {
+            const km = vt.weeklyKm[w.weekKey];
+            voyRow.push(km && km > 0 ? `VOY (${km}km)` : '');
+          });
+          rows.push(voyRow);
+        });
+      }
+      if (m.specials.sejourTrips && m.specials.sejourTrips.length > 0) {
+        m.specials.sejourTrips.forEach((st) => {
+          const sejRow: (string | number)[] = [
+            `  ↳ Séjour : ${st.tripName}`,
+            '',
+            st.count,
+            st.km,
+          ];
+          weeks.forEach((w) => {
+            const km = st.weeklyKm[w.weekKey];
+            sejRow.push(km && km > 0 ? `SÉJ (${km}km)` : '');
+          });
+          rows.push(sejRow);
+        });
+      }
+    }
   });
 
   // Summary rows at the bottom

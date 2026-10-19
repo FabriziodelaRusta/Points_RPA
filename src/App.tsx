@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { RandoRecord, MemberSummary, WeekInfo, SeasonInfo } from './types/rpa';
 import { getSeasonInfo } from './utils/dateAndWeek';
-import { parseRpaCsv, processAllRecords } from './utils/csvParser';
+import { parseRpaCsv, processAllRecords, readUploadedFileAsText } from './utils/csvParser';
 import { MemberSelector } from './components/MemberSelector';
 import { DataSourceManager } from './components/DataSourceManager';
 import { LibreCalcTable } from './components/LibreCalcTable';
@@ -97,7 +97,7 @@ export default function App() {
     const newLoaded: { filename: string; content: string; count: number }[] = [];
 
     for (const file of fileArray) {
-      const text = await file.text();
+      const text = await readUploadedFileAsText(file);
       const records = parseRpaCsv(text, file.name);
       newLoaded.push({
         filename: file.name,
@@ -135,7 +135,7 @@ export default function App() {
 
           if (isTarget) {
             const file = await entry.getFile();
-            const text = await file.text();
+            const text = await readUploadedFileAsText(file);
             const records = parseRpaCsv(text, name);
             found.push({
               filename: name,
@@ -391,7 +391,7 @@ export default function App() {
 
       {/* Version Number centered at bottom as strictly requested */}
       <footer className="text-center py-6 text-slate-500 font-mono text-sm tracking-wide border-t border-slate-200/80 bg-white/50">
-        v1.3 - FabriziodelaRusta
+        v1.5 - FabriziodelaRusta
       </footer>
     </div>
   );

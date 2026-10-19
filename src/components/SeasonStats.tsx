@@ -10,6 +10,9 @@ import {
   CalendarCheck,
   CalendarX,
   BarChart3,
+  Compass,
+  Plane,
+  Hotel,
 } from 'lucide-react';
 
 interface SeasonStatsProps {
@@ -101,6 +104,63 @@ export const SeasonStats: React.FC<SeasonStatsProps> = ({
 
   const weeksWithoutRandos = Math.max(0, totalSeasonWeeks - weeksWithRandos);
   const percentActive = totalSeasonWeeks > 0 ? Math.round((weeksWithRandos / totalSeasonWeeks) * 100) : 0;
+
+  // 8. Statistiques spécifiques pour les fichiers FR ou VOY :
+  // - Flèches-Relais : total flèches-relais, nbre de personnes, total km
+  // - Voyages : total voyages par personne (si 2 personnes font le même voyage = 2), nbre de personnes, total km
+  // - Séjours : total séjours par personne (si 2 personnes font le même séjour = 2), nbre de personnes, total km
+  const specialStats = useMemo(() => {
+    let flechesRelaisCount = 0;
+    let flechesRelaisKm = 0;
+    const flechesRelaisPersons = new Set<string>();
+
+    let voyagesCount = 0;
+    let voyagesKm = 0;
+    const voyagesPersons = new Set<string>();
+
+    let sejoursCount = 0;
+    let sejoursKm = 0;
+    const sejoursPersons = new Set<string>();
+
+    for (const member of members) {
+      if (member.specials) {
+        if (member.specials.frCount > 0) {
+          flechesRelaisCount += member.specials.frCount;
+          flechesRelaisKm += member.specials.frKm;
+          flechesRelaisPersons.add(member.memberName);
+        }
+        if (member.specials.voyageCount > 0) {
+          voyagesCount += member.specials.voyageCount;
+          voyagesKm += member.specials.voyageKm;
+          voyagesPersons.add(member.memberName);
+        }
+        if (member.specials.sejourCount > 0) {
+          sejoursCount += member.specials.sejourCount;
+          sejoursKm += member.specials.sejourKm;
+          sejoursPersons.add(member.memberName);
+        }
+      }
+    }
+
+    return {
+      flechesRelais: {
+        total: flechesRelaisCount,
+        km: Math.round(flechesRelaisKm * 10) / 10,
+        persons: flechesRelaisPersons.size,
+      },
+      voyages: {
+        total: voyagesCount,
+        km: Math.round(voyagesKm * 10) / 10,
+        persons: voyagesPersons.size,
+      },
+      sejours: {
+        total: sejoursCount,
+        km: Math.round(sejoursKm * 10) / 10,
+        persons: sejoursPersons.size,
+      },
+      hasAny: flechesRelaisCount > 0 || voyagesCount > 0 || sejoursCount > 0,
+    };
+  }, [members]);
 
   return (
     <div className="bg-white border border-slate-200 rounded-lg shadow-xs p-4 sm:p-5">
@@ -247,6 +307,120 @@ export const SeasonStats: React.FC<SeasonStatsProps> = ({
             </div>
             <div className="text-[11px] text-slate-500 truncate" title={`${weeksWithoutRandos} semaines sans rando sur ${totalSeasonWeeks}`}>
               Sans sortie
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Section Activités Spéciales (Fichiers FR & VOY) */}
+      <div className="mt-4 pt-4 border-t border-slate-200">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded bg-purple-100 text-purple-800 flex items-center justify-center">
+              <Compass className="w-3.5 h-3.5" />
+            </div>
+            <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+              Flèches-Relais, Voyages & Séjours · Fichiers FR ou VOY
+            </h4>
+          </div>
+          <span className="text-[11px] text-slate-500 font-mono self-start sm:self-auto">
+            {specialStats.hasAny
+              ? 'Activité(s) comptabilisée(s)'
+              : 'En attente de fichier(s) FR ou VOY'}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {/* 1. Flèches - Relais */}
+          <div className="bg-purple-50/70 border border-purple-200 rounded-lg p-3.5 flex flex-col justify-between hover:bg-purple-50 transition-colors">
+            <div className="flex items-center justify-between text-purple-700 mb-1.5">
+              <span className="text-[11px] font-bold uppercase tracking-wider">
+                Flèches - Relais
+              </span>
+              <Compass className="w-4 h-4 text-purple-600" />
+            </div>
+            <div>
+              <div className="text-2xl font-black text-purple-950 font-mono">
+                {specialStats.flechesRelais.total}
+              </div>
+              <div className="text-xs font-medium text-purple-800 mt-0.5">
+                {specialStats.flechesRelais.total > 1
+                  ? 'Total flèches-relais effectuées'
+                  : 'Total flèche-relais effectuée'}
+              </div>
+              <div className="mt-2 pt-2 border-t border-purple-200/60 flex items-center justify-between text-[11px] text-purple-700">
+                <span>
+                  <strong>{specialStats.flechesRelais.persons}</strong>{' '}
+                  {specialStats.flechesRelais.persons > 1 ? 'personnes' : 'personne'}
+                </span>
+                <span className="font-mono font-bold text-purple-900 bg-purple-100/70 px-1.5 py-0.5 rounded">
+                  {specialStats.flechesRelais.km.toLocaleString('fr-FR')} km
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Voyages */}
+          <div
+            className="bg-sky-50/70 border border-sky-200 rounded-lg p-3.5 flex flex-col justify-between hover:bg-sky-50 transition-colors"
+            title="Chaque voyage n'est compté qu'une fois par personne si le nom du voyage est identique (les km de toutes les étapes sont cumulés)"
+          >
+            <div className="flex items-center justify-between text-sky-700 mb-1.5">
+              <span className="text-[11px] font-bold uppercase tracking-wider">
+                Voyages
+              </span>
+              <Plane className="w-4 h-4 text-sky-600" />
+            </div>
+            <div>
+              <div className="text-2xl font-black text-sky-950 font-mono">
+                {specialStats.voyages.total}
+              </div>
+              <div className="text-xs font-medium text-sky-800 mt-0.5">
+                {specialStats.voyages.total > 1
+                  ? 'Voyages distincts par personne'
+                  : 'Voyage distinct par personne'}
+              </div>
+              <div className="mt-2 pt-2 border-t border-sky-200/60 flex items-center justify-between text-[11px] text-sky-700">
+                <span>
+                  <strong>{specialStats.voyages.persons}</strong>{' '}
+                  {specialStats.voyages.persons > 1 ? 'personnes' : 'personne'}
+                </span>
+                <span className="font-mono font-bold text-sky-900 bg-sky-100/70 px-1.5 py-0.5 rounded">
+                  {specialStats.voyages.km.toLocaleString('fr-FR')} km
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. Séjours */}
+          <div
+            className="bg-amber-50/70 border border-amber-200 rounded-lg p-3.5 flex flex-col justify-between hover:bg-amber-50 transition-colors"
+            title="Chaque séjour n'est compté qu'une fois par personne si le nom du séjour est identique (les km de toutes les étapes sont cumulés)"
+          >
+            <div className="flex items-center justify-between text-amber-700 mb-1.5">
+              <span className="text-[11px] font-bold uppercase tracking-wider">
+                Séjours
+              </span>
+              <Hotel className="w-4 h-4 text-amber-600" />
+            </div>
+            <div>
+              <div className="text-2xl font-black text-amber-950 font-mono">
+                {specialStats.sejours.total}
+              </div>
+              <div className="text-xs font-medium text-amber-800 mt-0.5">
+                {specialStats.sejours.total > 1
+                  ? 'Séjours distincts par personne'
+                  : 'Séjour distinct par personne'}
+              </div>
+              <div className="mt-2 pt-2 border-t border-amber-200/60 flex items-center justify-between text-[11px] text-amber-700">
+                <span>
+                  <strong>{specialStats.sejours.persons}</strong>{' '}
+                  {specialStats.sejours.persons > 1 ? 'personnes' : 'personne'}
+                </span>
+                <span className="font-mono font-bold text-amber-900 bg-amber-100/70 px-1.5 py-0.5 rounded">
+                  {specialStats.sejours.km.toLocaleString('fr-FR')} km
+                </span>
+              </div>
             </div>
           </div>
         </div>

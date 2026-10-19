@@ -9,6 +9,9 @@ import {
   ZoomOut,
   ArrowUpDown,
   Check,
+  Compass,
+  Plane,
+  Hotel,
 } from 'lucide-react';
 
 interface LibreCalcTableProps {
@@ -60,6 +63,44 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
 
     return result;
   }, [members, searchTerm, sortBy]);
+
+  // Precalcul des indices de lignes Calc séquentiels pour chaque membre et ses sous-lignes spéciales
+  const rowsWithCoordinates = useMemo(() => {
+    let currentCalcRow = 2;
+    return processedMembers.map((member) => {
+      const memberRowIndex = currentCalcRow++;
+      const hasFr = Boolean(member.specials && member.specials.frCount > 0);
+      const frRowIndex = hasFr ? currentCalcRow++ : null;
+
+      // Une sous-ligne par voyage distinct pour cette personne
+      const voyageTripsWithRows = (member.specials?.voyageTrips || []).map((vt) => ({
+        ...vt,
+        rowIndex: currentCalcRow++,
+      }));
+
+      // Une sous-ligne par séjour distinct pour cette personne
+      const sejourTripsWithRows = (member.specials?.sejourTrips || []).map((st) => ({
+        ...st,
+        rowIndex: currentCalcRow++,
+      }));
+
+      return {
+        member,
+        memberRowIndex,
+        hasFr,
+        frRowIndex,
+        voyageTripsWithRows,
+        sejourTripsWithRows,
+        lastRowIndex: currentCalcRow - 1,
+      };
+    });
+  }, [processedMembers]);
+
+  const totalTableRows = useMemo(() => {
+    if (rowsWithCoordinates.length === 0) return 1;
+    const last = rowsWithCoordinates[rowsWithCoordinates.length - 1];
+    return last.lastRowIndex || last.memberRowIndex;
+  }, [rowsWithCoordinates]);
 
   // Scroll to selected member if requested
   useEffect(() => {
@@ -393,172 +434,447 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
 
           {/* Table Body: Member rows */}
           <tbody>
-            {processedMembers.map((member, rowIndex) => {
-              const rowNum = rowIndex + 2;
+            {rowsWithCoordinates.map((item, memberIndex) => {
+              const {
+                member,
+                memberRowIndex,
+                hasFr,
+                frRowIndex,
+                voyageTripsWithRows,
+                sejourTripsWithRows,
+              } = item;
               const isSelected = selectedMemberName === member.memberName;
 
               return (
-                <tr
-                  key={member.memberName}
-                  ref={(el) => {
-                    memberRowRefs.current[member.memberName] = el;
-                  }}
-                  className={`border-b border-slate-200 transition-colors ${
-                    isSelected
-                      ? 'bg-emerald-50/80 hover:bg-emerald-100/80'
-                      : rowIndex % 2 === 0
-                      ? 'bg-white hover:bg-slate-50'
-                      : 'bg-slate-50/60 hover:bg-slate-100/60'
-                  }`}
-                >
-                  {/* Row coordinate index */}
-                  <td className="px-1 py-1.5 text-center font-mono text-[11px] bg-slate-200 text-slate-500 border-r border-slate-300 sticky left-0 z-30 select-none">
-                    {rowNum}
-                  </td>
-
-                  {/* Member Name (Col A) */}
-                  <td
-                    onClick={() =>
-                      handleCellClick(
-                        `A${rowNum}`,
-                        member.memberName,
-                        member.memberName
-                      )
-                    }
-                    className={`px-3 py-1.5 font-medium border-r border-slate-300 sticky left-9 z-20 cursor-pointer ${
+                <React.Fragment key={member.memberName}>
+                  {/* Ligne principale du membre (Calendrier des sorties hebdomadaires) */}
+                  <tr
+                    ref={(el) => {
+                      memberRowRefs.current[member.memberName] = el;
+                    }}
+                    className={`border-b border-slate-200 transition-colors ${
                       isSelected
-                        ? 'bg-emerald-100 text-emerald-950 font-bold border-l-4 border-l-emerald-600'
-                        : rowIndex % 2 === 0
-                        ? 'bg-white text-slate-900'
-                        : 'bg-slate-50 text-slate-900'
+                        ? 'bg-emerald-50/80 hover:bg-emerald-100/80'
+                        : memberIndex % 2 === 0
+                        ? 'bg-white hover:bg-slate-50'
+                        : 'bg-slate-50/60 hover:bg-slate-100/60'
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="truncate max-w-[155px]">{member.memberName}</span>
-                      {isSelected && (
-                        <Check className="w-3.5 h-3.5 text-emerald-700 shrink-0 ml-1" />
-                      )}
-                    </div>
-                  </td>
+                    {/* Row coordinate index */}
+                    <td className="px-1 py-1.5 text-center font-mono text-[11px] bg-slate-200 text-slate-500 border-r border-slate-300 sticky left-0 z-30 select-none">
+                      {memberRowIndex}
+                    </td>
 
-                  {/* Total Points (x count) (Col B) */}
-                  <td
-                    onClick={() =>
-                      handleCellClick(
-                        `B${rowNum}`,
-                        `=NB.SI(E${rowNum}:${lastColLetter}${rowNum}; "x") [Points: ${member.activeWeeksCount}]`,
-                        member.memberName
-                      )
-                    }
-                    className={`px-2 py-1.5 text-center font-bold font-mono border-r border-slate-300 sticky left-[226px] z-20 cursor-pointer ${
-                      isSelected
-                        ? 'bg-emerald-200 text-emerald-900'
-                        : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
-                    }`}
-                    title={`${member.memberName} a ${member.activeWeeksCount} point(s) (semaines avec 'x')`}
-                  >
-                    {member.activeWeeksCount}
-                  </td>
+                    {/* Member Name (Col A) */}
+                    <td
+                      onClick={() =>
+                        handleCellClick(
+                          `A${memberRowIndex}`,
+                          member.memberName,
+                          member.memberName
+                        )
+                      }
+                      className={`px-3 py-1.5 font-medium border-r border-slate-300 sticky left-9 z-20 cursor-pointer ${
+                        isSelected
+                          ? 'bg-emerald-100 text-emerald-950 font-bold border-l-4 border-l-emerald-600'
+                          : memberIndex % 2 === 0
+                          ? 'bg-white text-slate-900'
+                          : 'bg-slate-50 text-slate-900'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="truncate max-w-[155px]">{member.memberName}</span>
+                        {isSelected && (
+                          <Check className="w-3.5 h-3.5 text-emerald-700 shrink-0 ml-1" />
+                        )}
+                      </div>
+                    </td>
 
-                  {/* Total Randos (Col C) */}
-                  <td
-                    onClick={() =>
-                      handleCellClick(
-                        `C${rowNum}`,
-                        `=SOMME_RANDOS(${rowNum}) [Total randos: ${member.totalRandos}]`,
-                        member.memberName
-                      )
-                    }
-                    className={`px-2 py-1.5 text-center font-bold font-mono border-r border-slate-300 sticky left-[301px] z-20 cursor-pointer ${
-                      isSelected
-                        ? 'bg-slate-300 text-slate-900'
-                        : 'bg-slate-100/90 text-slate-800 hover:bg-slate-200'
-                    }`}
-                    title={`${member.memberName} a fait ${member.totalRandos} randonnée(s) au total`}
-                  >
-                    {member.totalRandos}
-                  </td>
+                    {/* Total Points (x count) (Col B) */}
+                    <td
+                      onClick={() =>
+                        handleCellClick(
+                          `B${memberRowIndex}`,
+                          `=NB.SI(E${memberRowIndex}:${lastColLetter}${memberRowIndex}; "x") [Points: ${member.activeWeeksCount}]`,
+                          member.memberName
+                        )
+                      }
+                      className={`px-2 py-1.5 text-center font-bold font-mono border-r border-slate-300 sticky left-[226px] z-20 cursor-pointer ${
+                        isSelected
+                          ? 'bg-emerald-200 text-emerald-900'
+                          : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100'
+                      }`}
+                      title={`${member.memberName} a ${member.activeWeeksCount} point(s) (semaines avec 'x')`}
+                    >
+                      {member.activeWeeksCount}
+                    </td>
 
-                  {/* Total Km (Col D) */}
-                  <td
-                    onClick={() =>
-                      handleCellClick(
-                        `D${rowNum}`,
-                        `=SOMME_KM(${rowNum}) [Distance totale: ${member.totalKm} km]`,
-                        member.memberName
-                      )
-                    }
-                    className={`px-2 py-1.5 text-center font-bold font-mono border-r-2 border-emerald-300 sticky left-[376px] z-20 cursor-pointer ${
-                      isSelected
-                        ? 'bg-emerald-200 text-emerald-900'
-                        : 'bg-emerald-50/70 text-emerald-900 hover:bg-emerald-100'
-                    }`}
-                    title={`${member.memberName} a parcouru ${member.totalKm} km au total`}
-                  >
-                    {member.totalKm}
-                  </td>
+                    {/* Total Randos (Col C) */}
+                    <td
+                      onClick={() =>
+                        handleCellClick(
+                          `C${memberRowIndex}`,
+                          `=SOMME_RANDOS(${memberRowIndex}) [Total randos: ${member.totalRandos}]`,
+                          member.memberName
+                        )
+                      }
+                      className={`px-2 py-1.5 text-center font-bold font-mono border-r border-slate-300 sticky left-[301px] z-20 cursor-pointer ${
+                        isSelected
+                          ? 'bg-slate-300 text-slate-900'
+                          : 'bg-slate-100/90 text-slate-800 hover:bg-slate-200'
+                      }`}
+                      title={`${member.memberName} a fait ${member.totalRandos} randonnée(s) au total`}
+                    >
+                      {member.totalRandos}
+                    </td>
 
-                  {/* Week Columns with 'x' (Col E..N) */}
-                  {weeks.map((week) => {
-                    const participations = member.participationsByWeek[week.weekKey] || [];
-                    const hasRando = participations.length > 0;
-                    const cellCoord = `${week.colLetter}${rowNum}`;
+                    {/* Total Km (Col D) */}
+                    <td
+                      onClick={() =>
+                        handleCellClick(
+                          `D${memberRowIndex}`,
+                          `=SOMME_KM(${memberRowIndex}) [Distance totale: ${member.totalKm} km]`,
+                          member.memberName
+                        )
+                      }
+                      className={`px-2 py-1.5 text-center font-bold font-mono border-r-2 border-emerald-300 sticky left-[376px] z-20 cursor-pointer ${
+                        isSelected
+                          ? 'bg-emerald-200 text-emerald-900'
+                          : 'bg-emerald-50/70 text-emerald-900 hover:bg-emerald-100'
+                      }`}
+                      title={`${member.memberName} a parcouru ${member.totalKm} km au total`}
+                    >
+                      {member.totalKm}
+                    </td>
 
-                    return (
-                      <td
-                        key={week.weekKey}
-                        onClick={() =>
-                          handleCellClick(
-                            cellCoord,
+                    {/* Week Columns with 'x' (Col E..N) */}
+                    {weeks.map((week) => {
+                      const participations = member.participationsByWeek[week.weekKey] || [];
+                      const hasRando = participations.length > 0;
+                      const cellCoord = `${week.colLetter}${memberRowIndex}`;
+
+                      return (
+                        <td
+                          key={week.weekKey}
+                          onClick={() =>
+                            handleCellClick(
+                              cellCoord,
+                              hasRando
+                                ? `x (${participations.length} rando${participations.length > 1 ? 's' : ''}: ${participations.map((p) => `${p.dateStr} - ${p.randoName}${p.km > 0 ? ` [${p.km} km]` : ''}`).join('; ')})`
+                                : '',
+                              member.memberName,
+                              week.headerLabel
+                            )
+                          }
+                          className={`px-1.5 py-1.5 text-center border-r border-slate-200 cursor-pointer relative group transition-colors ${
                             hasRando
-                              ? `x (${participations.length} rando${participations.length > 1 ? 's' : ''}: ${participations.map((p) => `${p.dateStr} - ${p.randoName}${p.km > 0 ? ` [${p.km} km]` : ''}`).join('; ')})`
-                              : '',
-                            member.memberName,
-                            week.headerLabel
-                          )
-                        }
-                        className={`px-1.5 py-1.5 text-center border-r border-slate-200 cursor-pointer relative group transition-colors ${
-                          hasRando
-                            ? isSelected
-                              ? 'bg-emerald-200 text-emerald-900 font-extrabold'
-                              : 'bg-emerald-50/40 text-emerald-800 font-bold hover:bg-emerald-100'
-                            : isSelected
-                            ? 'bg-emerald-50/20 hover:bg-emerald-100/50'
-                            : 'hover:bg-slate-100'
-                        }`}
-                      >
-                        {hasRando ? (
-                          <div className="flex items-center justify-center">
-                            {/* The 'x' mark requested by user */}
-                            <span className="text-sm font-black text-emerald-700 select-none">
-                              x
-                            </span>
+                              ? isSelected
+                                ? 'bg-emerald-200 text-emerald-900 font-extrabold'
+                                : 'bg-emerald-50/40 text-emerald-800 font-bold hover:bg-emerald-100'
+                              : isSelected
+                              ? 'bg-emerald-50/20 hover:bg-emerald-100/50'
+                              : 'hover:bg-slate-100'
+                          }`}
+                        >
+                          {hasRando ? (
+                            <div className="flex items-center justify-center">
+                              {/* The 'x' mark requested by user */}
+                              <span className="text-sm font-black text-emerald-700 select-none">
+                                x
+                              </span>
 
-                            {/* Floating tooltip with rando detail */}
-                            <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-50 bg-slate-900 text-white text-[11px] rounded py-1 px-2.5 whitespace-nowrap shadow-lg pointer-events-none">
-                              <div className="font-semibold">{member.memberName}</div>
-                              {participations.map((p, idx) => (
-                                <div key={idx} className="text-emerald-300">
-                                  {p.dateStr} : {p.randoName} {p.km > 0 ? `(${p.km} km)` : ''}
+                              {/* Floating tooltip with rando detail */}
+                              <div className="hidden group-hover:block absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-50 bg-slate-900 text-white text-[11px] rounded py-1 px-2.5 whitespace-nowrap shadow-lg pointer-events-none">
+                                <div className="font-semibold">{member.memberName}</div>
+                                {participations.map((p, idx) => (
+                                  <div key={idx} className="text-emerald-300">
+                                    {p.dateStr} : {p.randoName} {p.km > 0 ? `(${p.km} km)` : ''}
+                                  </div>
+                                ))}
+                                {participations.length > 1 && (
+                                  <div className="text-amber-300 font-semibold text-[10px]">
+                                    ★ {participations.length} randos cette semaine !
+                                  </div>
+                                )}
+                                <div className="text-[9px] text-slate-400">
+                                  Semaine {week.weekNumber} ({week.startFormatted} - {week.endFormatted})
                                 </div>
-                              ))}
-                              {participations.length > 1 && (
-                                <div className="text-amber-300 font-semibold text-[10px]">
-                                  ★ {participations.length} randos cette semaine !
-                                </div>
-                              )}
-                              <div className="text-[9px] text-slate-400">
-                                Semaine {week.weekNumber} ({week.startFormatted} - {week.endFormatted})
                               </div>
                             </div>
-                          </div>
-                        ) : (
-                          <span className="text-slate-200"></span>
-                        )}
+                          ) : (
+                            <span className="text-slate-200"></span>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+
+                  {/* Ligne Flèches - Relais si présente dans le fichier FR ou VOY */}
+                  {hasFr && (
+                    <tr
+                      key={`${member.memberName}-fr`}
+                      className={`border-b border-purple-100 transition-colors ${
+                        isSelected ? 'bg-purple-100/70' : 'bg-purple-50/50 hover:bg-purple-50'
+                      }`}
+                    >
+                      <td className="px-1 py-1.5 text-center font-mono text-[11px] bg-slate-200 text-slate-500 border-r border-slate-300 sticky left-0 z-30 select-none">
+                        {frRowIndex}
                       </td>
-                    );
-                  })}
-                </tr>
+                      <td
+                        onClick={() =>
+                          handleCellClick(
+                            `A${frRowIndex}`,
+                            `${member.memberName} — Flèches-Relais : ${member.specials!.frRecords.map((r) => `${r.randoName} (${r.km} km)`).join(' ; ')}`,
+                            member.memberName
+                          )
+                        }
+                        className="px-3 py-1.5 font-medium border-r border-slate-300 sticky left-9 z-20 cursor-pointer bg-purple-50/70 pl-6"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-purple-600 font-bold">↳</span>
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
+                            Flèches - Relais
+                          </span>
+                          <span
+                            className="text-[10px] text-purple-700 truncate max-w-[130px] hidden sm:inline"
+                            title={member.specials!.frRecords.map((r) => `${r.dateStr}: ${r.randoName} (${r.km} km)`).join(', ')}
+                          >
+                            ({member.specials!.frRecords.map((r) => r.randoName).join(', ')})
+                          </span>
+                        </div>
+                      </td>
+                      <td
+                        className="px-2 py-1.5 text-center font-mono text-slate-400 border-r border-slate-300 sticky left-[226px] z-20 bg-purple-50/40 text-[11px]"
+                        title="Flèches-Relais hors points hebdomadaires"
+                      >
+                        —
+                      </td>
+                      <td
+                        onClick={() =>
+                          handleCellClick(
+                            `C${frRowIndex}`,
+                            `Total flèches-relais: ${member.specials!.frCount}`,
+                            member.memberName
+                          )
+                        }
+                        className="px-2 py-1.5 text-center font-bold font-mono text-purple-900 border-r border-slate-300 sticky left-[301px] z-20 bg-purple-100/70 cursor-pointer"
+                        title={`${member.memberName} a ${member.specials!.frCount} entrée(s) Flèches-Relais`}
+                      >
+                        {member.specials!.frCount}
+                      </td>
+                      <td
+                        onClick={() =>
+                          handleCellClick(
+                            `D${frRowIndex}`,
+                            `Total km flèches-relais: ${member.specials!.frKm} km`,
+                            member.memberName
+                          )
+                        }
+                        className="px-2 py-1.5 text-center font-bold font-mono text-purple-900 border-r-2 border-purple-300 sticky left-[376px] z-20 bg-purple-100/70 cursor-pointer"
+                        title={`${member.specials!.frKm} km au total en Flèches-Relais`}
+                      >
+                        {member.specials!.frKm}
+                      </td>
+                      {weeks.map((week) => {
+                        const weeklyFr = member.specials!.frRecords.filter((r) => r.weekKey === week.weekKey);
+                        const hasWeekly = weeklyFr.length > 0;
+                        return (
+                          <td
+                            key={week.weekKey}
+                            className="px-1.5 py-1 text-center border-r border-purple-100/70 bg-purple-50/20 text-[10px]"
+                          >
+                            {hasWeekly ? (
+                              <span
+                                className="inline-block px-1 py-0.5 rounded font-mono font-bold text-[9px] bg-purple-200 text-purple-800"
+                                title={weeklyFr.map((p) => `${p.dateStr}: ${p.randoName} (${p.km} km)`).join('; ')}
+                              >
+                                FR ({weeklyFr.reduce((s, p) => s + p.km, 0)}km)
+                              </span>
+                            ) : null}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  )}
+
+                  {/* Une sous-ligne par voyage distinct si présent dans le fichier FR ou VOY */}
+                  {voyageTripsWithRows.map((vt) => (
+                    <tr
+                      key={`${member.memberName}-voyage-${vt.tripKey}`}
+                      className={`border-b border-sky-100 transition-colors ${
+                        isSelected ? 'bg-sky-100/70' : 'bg-sky-50/50 hover:bg-sky-50'
+                      }`}
+                    >
+                      <td className="px-1 py-1.5 text-center font-mono text-[11px] bg-slate-200 text-slate-500 border-r border-slate-300 sticky left-0 z-30 select-none">
+                        {vt.rowIndex}
+                      </td>
+                      <td
+                        onClick={() =>
+                          handleCellClick(
+                            `A${vt.rowIndex}`,
+                            `${member.memberName} — Voyage : ${vt.tripName} (${vt.records.map((r) => `${r.randoName} (${r.km} km)`).join(' ; ')})`,
+                            member.memberName
+                          )
+                        }
+                        className="px-3 py-1.5 font-medium border-r border-slate-300 sticky left-9 z-20 cursor-pointer bg-sky-50/70 pl-6"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sky-600 font-bold">↳</span>
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-200 shrink-0">
+                            Voyage
+                          </span>
+                          <span
+                            className="text-[11px] font-semibold text-sky-950 truncate max-w-[200px]"
+                            title={vt.records.map((r) => `${r.dateStr}: ${r.randoName} (${r.km} km)`).join(', ')}
+                          >
+                            {vt.tripName}
+                          </span>
+                        </div>
+                      </td>
+                      <td
+                        className="px-2 py-1.5 text-center font-mono text-slate-400 border-r border-slate-300 sticky left-[226px] z-20 bg-sky-50/40 text-[11px]"
+                        title="Voyages hors points hebdomadaires"
+                      >
+                        —
+                      </td>
+                      <td
+                        onClick={() =>
+                          handleCellClick(
+                            `C${vt.rowIndex}`,
+                            `${member.memberName} — Voyage ${vt.tripName} : ${vt.count} entrées / sorties`,
+                            member.memberName
+                          )
+                        }
+                        className="px-2 py-1.5 text-center font-bold font-mono text-sky-900 border-r border-slate-300 sticky left-[301px] z-20 bg-sky-100/70 cursor-pointer"
+                        title={`${vt.count} entrées / sorties enregistrées dans ce voyage pour ${member.memberName}`}
+                      >
+                        {vt.count}
+                      </td>
+                      <td
+                        onClick={() =>
+                          handleCellClick(
+                            `D${vt.rowIndex}`,
+                            `${member.memberName} — Voyage ${vt.tripName} : total ${vt.km} km`,
+                            member.memberName
+                          )
+                        }
+                        className="px-2 py-1.5 text-center font-bold font-mono text-sky-900 border-r-2 border-sky-300 sticky left-[376px] z-20 bg-sky-100/70 cursor-pointer"
+                        title={`${vt.km} km au total pour ce voyage`}
+                      >
+                        {vt.km}
+                      </td>
+                      {weeks.map((week) => {
+                        const kmForWeek = vt.weeklyKm[week.weekKey];
+                        const weeklyRecords = vt.records.filter((r) => r.weekKey === week.weekKey);
+                        const hasWeekly = Boolean(kmForWeek && kmForWeek > 0);
+                        return (
+                          <td
+                            key={week.weekKey}
+                            className="px-1.5 py-1 text-center border-r border-sky-100/70 bg-sky-50/20 text-[10px]"
+                          >
+                            {hasWeekly ? (
+                              <span
+                                className="inline-block px-1 py-0.5 rounded font-mono font-bold text-[9px] bg-sky-200 text-sky-800"
+                                title={weeklyRecords.map((p) => `${p.dateStr}: ${p.randoName} (${p.km} km)`).join('; ')}
+                              >
+                                VOY ({kmForWeek}km)
+                              </span>
+                            ) : null}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+
+                  {/* Une sous-ligne par séjour distinct si présent dans le fichier FR ou VOY */}
+                  {sejourTripsWithRows.map((st) => (
+                    <tr
+                      key={`${member.memberName}-sejour-${st.tripKey}`}
+                      className={`border-b border-amber-100 transition-colors ${
+                        isSelected ? 'bg-amber-100/70' : 'bg-amber-50/50 hover:bg-amber-50'
+                      }`}
+                    >
+                      <td className="px-1 py-1.5 text-center font-mono text-[11px] bg-slate-200 text-slate-500 border-r border-slate-300 sticky left-0 z-30 select-none">
+                        {st.rowIndex}
+                      </td>
+                      <td
+                        onClick={() =>
+                          handleCellClick(
+                            `A${st.rowIndex}`,
+                            `${member.memberName} — Séjour : ${st.tripName} (${st.records.map((r) => `${r.randoName} (${r.km} km)`).join(' ; ')})`,
+                            member.memberName
+                          )
+                        }
+                        className="px-3 py-1.5 font-medium border-r border-slate-300 sticky left-9 z-20 cursor-pointer bg-amber-50/70 pl-6"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-amber-600 font-bold">↳</span>
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200 shrink-0">
+                            Séjour
+                          </span>
+                          <span
+                            className="text-[11px] font-semibold text-amber-950 truncate max-w-[200px]"
+                            title={st.records.map((r) => `${r.dateStr}: ${r.randoName} (${r.km} km)`).join(', ')}
+                          >
+                            {st.tripName}
+                          </span>
+                        </div>
+                      </td>
+                      <td
+                        className="px-2 py-1.5 text-center font-mono text-slate-400 border-r border-slate-300 sticky left-[226px] z-20 bg-amber-50/40 text-[11px]"
+                        title="Séjours non comptabilisés dans les points hebdomadaires"
+                      >
+                        —
+                      </td>
+                      <td
+                        onClick={() =>
+                          handleCellClick(
+                            `C${st.rowIndex}`,
+                            `${member.memberName} — Séjour ${st.tripName} : ${st.count} entrées / sorties`,
+                            member.memberName
+                          )
+                        }
+                        className="px-2 py-1.5 text-center font-bold font-mono text-amber-900 border-r border-slate-300 sticky left-[301px] z-20 bg-amber-100/70 cursor-pointer"
+                        title={`${st.count} entrées / sorties enregistrées dans ce séjour pour ${member.memberName}`}
+                      >
+                        {st.count}
+                      </td>
+                      <td
+                        onClick={() =>
+                          handleCellClick(
+                            `D${st.rowIndex}`,
+                            `${member.memberName} — Séjour ${st.tripName} : total ${st.km} km`,
+                            member.memberName
+                          )
+                        }
+                        className="px-2 py-1.5 text-center font-bold font-mono text-amber-900 border-r-2 border-amber-300 sticky left-[376px] z-20 bg-amber-100/70 cursor-pointer"
+                        title={`${st.km} km au total pour ce séjour`}
+                      >
+                        {st.km}
+                      </td>
+                      {weeks.map((week) => {
+                        const kmForWeek = st.weeklyKm[week.weekKey];
+                        const weeklyRecords = st.records.filter((r) => r.weekKey === week.weekKey);
+                        const hasWeekly = Boolean(kmForWeek && kmForWeek > 0);
+                        return (
+                          <td
+                            key={week.weekKey}
+                            className="px-1.5 py-1 text-center border-r border-amber-100/70 bg-amber-50/20 text-[10px]"
+                          >
+                            {hasWeekly ? (
+                              <span
+                                className="inline-block px-1 py-0.5 rounded font-mono font-bold text-[9px] bg-amber-200 text-amber-800"
+                                title={weeklyRecords.map((p) => `${p.dateStr}: ${p.randoName} (${p.km} km)`).join('; ')}
+                              >
+                                SÉJ ({kmForWeek}km)
+                              </span>
+                            ) : null}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </React.Fragment>
               );
             })}
 
@@ -587,14 +903,14 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
             <tr className="bg-emerald-100/90 border-t-2 border-slate-400 font-bold text-slate-800">
               {/* Row index */}
               <td className="px-1 py-2 text-center font-mono text-[11px] bg-emerald-200 text-emerald-950 border-r border-slate-300 sticky left-0 z-40">
-                {members.length + 2}
+                {totalTableRows + 1}
               </td>
 
               {/* Label */}
               <td
                 onClick={() =>
                   handleCellClick(
-                    `A${members.length + 2}`,
+                    `A${totalTableRows + 1}`,
                     'TOTAL DES COLONNES (Points, Randos, Km)'
                   )
                 }
@@ -607,8 +923,8 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
               <td
                 onClick={() =>
                   handleCellClick(
-                    `B${members.length + 2}`,
-                    `=SOMME(B2:B${members.length + 1}) [Total points: ${totalPointsOverall}]`
+                    `B${totalTableRows + 1}`,
+                    `=SOMME(B2:B${totalTableRows}) [Total points: ${totalPointsOverall}]`
                   )
                 }
                 className="px-2 py-2 text-center font-mono font-black text-emerald-950 bg-emerald-200 border-r border-slate-300 sticky left-[226px] z-30 text-xs cursor-pointer shadow-xs"
@@ -621,8 +937,8 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
               <td
                 onClick={() =>
                   handleCellClick(
-                    `C${members.length + 2}`,
-                    `=SOMME(C2:C${members.length + 1}) [Total randos: ${totalRandosOverall}]`
+                    `C${totalTableRows + 1}`,
+                    `=SOMME(C2:C${totalTableRows}) [Total randos: ${totalRandosOverall}]`
                   )
                 }
                 className="px-2 py-2 text-center font-mono font-black text-slate-900 bg-slate-300 border-r border-slate-300 sticky left-[301px] z-30 text-xs cursor-pointer shadow-xs"
@@ -635,8 +951,8 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
               <td
                 onClick={() =>
                   handleCellClick(
-                    `D${members.length + 2}`,
-                    `=SOMME(D2:D${members.length + 1}) [Total km: ${totalKmOverall} km]`
+                    `D${totalTableRows + 1}`,
+                    `=SOMME(D2:D${totalTableRows}) [Total km: ${totalKmOverall} km]`
                   )
                 }
                 className="px-2 py-2 text-center font-mono font-black text-emerald-950 bg-emerald-200/95 border-r-2 border-emerald-400 sticky left-[376px] z-30 text-xs cursor-pointer shadow-xs"
@@ -660,14 +976,14 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
             <tr className="bg-slate-200 border-t border-slate-300 font-bold text-slate-800">
               {/* Row index */}
               <td className="px-1 py-2 text-center font-mono text-[11px] bg-slate-300 text-slate-600 border-r border-slate-300 sticky left-0 z-40">
-                {members.length + 3}
+                {totalTableRows + 2}
               </td>
 
               {/* Label */}
               <td
                 onClick={() =>
                   handleCellClick(
-                    `A${members.length + 3}`,
+                    `A${totalTableRows + 2}`,
                     'TOTAL PARTICIPANTS PAR SEMAINE'
                   )
                 }
@@ -699,8 +1015,8 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
                     key={`weekly-total-${w.weekKey}`}
                     onClick={() =>
                       handleCellClick(
-                        `${w.colLetter}${members.length + 3}`,
-                        `=NB.SI(${w.colLetter}2:${w.colLetter}${members.length + 1}; "x") [Participants: ${total}]`,
+                        `${w.colLetter}${totalTableRows + 2}`,
+                        `=NB.SI(${w.colLetter}2:${w.colLetter}${totalTableRows}; "x") [Participants: ${total}]`,
                         undefined,
                         w.headerLabel
                       )

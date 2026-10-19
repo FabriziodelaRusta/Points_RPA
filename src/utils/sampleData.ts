@@ -186,3 +186,38 @@ export const SAMPLE_2027_CSV = `Date;Randonnée;Nom et prénom;Distance
 03/10/2027;Clôture Saison Automne;LECLERC Sabine;65
 03/10/2027;Clôture Saison Automne;PERRIN Jean-Luc;65
 `;
+
+export const SAMPLE_2026_VOY_CSV = `Date;Randonnée;Nom et prénom;Distance;Voyage / Séjour
+10/05/2026;Ajaccio - Porto;DELARUSTA Fabrizio;80;Voyage : Corse
+11/05/2026;Porto - Calvi;DELARUSTA Fabrizio;85;Voyage : Corse
+12/05/2026;Calvi - Corte;DELARUSTA Fabrizio;90;Voyage : Corse
+13/05/2026;Corte - Bastia;DELARUSTA Fabrizio;75;Voyage : Corse
+14/05/2026;Bastia - Aléria;DELARUSTA Fabrizio;70;Voyage : Corse
+15/05/2026;Aléria - Bonifacio;DELARUSTA Fabrizio;85;Voyage : Corse
+16/05/2026;Bonifacio - Propriano;DELARUSTA Fabrizio;80;Voyage : Corse
+17/05/2026;Propriano - Ajaccio;DELARUSTA Fabrizio;75;Voyage : Corse
+18/05/2026;Boucle des Sanguinaires;DELARUSTA Fabrizio;60;Voyage : Corse
+19/05/2026;Retour et clôture Corse;DELARUSTA Fabrizio;50;Voyage : Corse
+10/05/2026;Ajaccio - Porto;BERNARD Laurent;80;Voyage : Corse
+11/05/2026;Porto - Calvi;BERNARD Laurent;85;Voyage : Corse
+12/05/2026;Calvi - Corte;BERNARD Laurent;90;Voyage : Corse
+13/05/2026;Corte - Bastia;BERNARD Laurent;75;Voyage : Corse
+14/05/2026;Bastia - Aléria;BERNARD Laurent;70;Voyage : Corse
+15/05/2026;Aléria - Bonifacio;BERNARD Laurent;85;Voyage : Corse
+16/05/2026;Bonifacio - Propriano;BERNARD Laurent;80;Voyage : Corse
+17/05/2026;Propriano - Ajaccio;BERNARD Laurent;75;Voyage : Corse
+18/05/2026;Boucle des Sanguinaires;BERNARD Laurent;60;Voyage : Corse
+19/05/2026;Retour et clôture Corse;BERNARD Laurent;50;Voyage : Corse
+15/06/2026;Étape 1 Aurillac;DELARUSTA Fabrizio;70;Séjour : Cantal
+16/06/2026;Étape 2 Salers;DELARUSTA Fabrizio;75;Séjour : Cantal
+17/06/2026;Étape 3 Puy Mary;DELARUSTA Fabrizio;80;Séjour : Cantal
+15/06/2026;Étape 1 Aurillac;LECLERC Sabine;70;Séjour : Cantal
+16/06/2026;Étape 2 Salers;LECLERC Sabine;75;Séjour : Cantal
+17/06/2026;Étape 3 Puy Mary;LECLERC Sabine;80;Séjour : Cantal
+05/07/2026;Quimper - Brest;BERNARD Laurent;90;Voyage : Bretagne
+06/07/2026;Brest - Morlaix;BERNARD Laurent;85;Voyage : Bretagne
+07/07/2026;Morlaix - Saint-Brieuc;BERNARD Laurent;95;Voyage : Bretagne
+18/04/2026;Flèche Vosges;DELARUSTA Fabrizio;120;Flèche-Relais
+19/04/2026;Relais des Crêtes;DELARUSTA Fabrizio;130;Flèche-Relais
+18/04/2026;Flèche Vosges;LECLERC Sabine;120;Flèche-Relais
+`;

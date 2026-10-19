@@ -93,7 +93,10 @@ async function startServer() {
       const dirEntries = fs.readdirSync(customDir);
 
       for (const file of dirEntries) {
-        if (expectedNames.some((exp) => exp.toLowerCase() === file.toLowerCase())) {
+        const isCsv = file.toLowerCase().endsWith('.csv') || file.toLowerCase().endsWith('.cvs');
+        const isSpecial = /(?:FR|VOY|FL|SEJ)/i.test(file);
+        const isExpected = expectedNames.some((exp) => exp.toLowerCase() === file.toLowerCase());
+        if (isCsv && (isExpected || isSpecial)) {
           const filePath = path.join(customDir, file);
           const content = fs.readFileSync(filePath, 'utf-8');
           loadedFiles.push({ filename: file, content });
