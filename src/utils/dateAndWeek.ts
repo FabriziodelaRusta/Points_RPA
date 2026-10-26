@@ -10,10 +10,7 @@ import { SeasonInfo, WeekInfo } from '../types/rpa';
  *   - Lignes de (YYYY - 1).csv avec date >= 1er novembre (YYYY - 1)
  *   - Lignes de YYYY.csv avec date < 1er novembre YYYY
  */
-export function getSeasonInfo(
-  targetYear: number = 2026,
-  referenceDate: Date = new Date()
-): SeasonInfo {
+export function getSeasonInfo(targetYear: number = 2026): SeasonInfo {
   const currentYear = targetYear;
   const previousYear = targetYear - 1;
 
@@ -21,9 +18,6 @@ export function getSeasonInfo(
   const seasonStartDate = new Date(previousYear, 10, 1, 0, 0, 0, 0);
   // Ends 1st November targetYear (exclusive, so up to 31/10/targetYear 23:59:59)
   const seasonEndDate = new Date(targetYear, 10, 1, 0, 0, 0, 0);
-
-  const nov1ThisYear = new Date(targetYear, 10, 1, 0, 0, 0, 0);
-  const isAfterNov1 = referenceDate.getTime() >= nov1ThisYear.getTime();
 
   const expectedFiles = [`${previousYear}.csv`, `${targetYear}.csv`];
 
@@ -33,12 +27,11 @@ export function getSeasonInfo(
     selectedYear: targetYear,
     seasonStartDate,
     seasonEndDate,
-    isAfterNov1,
+    isAfterNov1: false,
     currentYear: targetYear,
     previousYear: targetYear - 1,
     expectedFiles,
     ruleExplanation,
-    referenceDate,
   };
 }
 

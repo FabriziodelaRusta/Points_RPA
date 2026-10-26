@@ -113,6 +113,28 @@ async function startServer() {
     }
   });
 
+  // API endpoint to proxy GitHub files list (bypasses browser CORS / rate-limit)
+  app.get('/api/github/participations', async (_req, res) => {
+    try {
+      const ghRes = await fetch(
+        'https://api.github.com/repos/FabriziodelaRusta/Input_files/contents/participations',
+        {
+          headers: {
+            'User-Agent': 'RPA-Points-App',
+            Accept: 'application/vnd.github.v3+json',
+          },
+        }
+      );
+      if (ghRes.ok) {
+        const data = await ghRes.json();
+        return res.json(data);
+      }
+      return res.status(ghRes.status).json({ error: 'GitHub API error' });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message });
+    }
+  });
+
   // Vite development middleware mounting
   const isProd = process.env.NODE_ENV === 'production';
   const httpServer = http.createServer(app);

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { RandoRecord, MemberSummary, WeekInfo, SeasonInfo } from './types/rpa';
 import { getSeasonInfo } from './utils/dateAndWeek';
 import { parseRpaCsv, processAllRecords, readUploadedFileAsText } from './utils/csvParser';
+import { loadGithubSeasonFiles } from './utils/githubLoader';
 import { MemberSelector } from './components/MemberSelector';
 import { DataSourceManager } from './components/DataSourceManager';
 import { LibreCalcTable } from './components/LibreCalcTable';
@@ -21,7 +22,9 @@ import {
 
 export default function App() {
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-  const [referenceDate, setReferenceDate] = useState<Date>(new Date());
+  const [availableYears, setAvailableYears] = useState<number[]>([
+    2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026,
+  ]);
   const [loadedFiles, setLoadedFiles] = useState<{ filename: string; content: string; count: number }[]>([]);
   const [isCustomData, setIsCustomData] = useState<boolean>(true);
   const [selectedMemberName, setSelectedMemberName] = useState<string | null>(null);
@@ -32,10 +35,10 @@ export default function App() {
 
   const localDirPath = '/home/sabine/Documents/RPA';
 
-  // Calculate season rule based on selected year and reference date
+  // Calculate season rule based on selected year
   const seasonInfo: SeasonInfo = useMemo(() => {
-    return getSeasonInfo(selectedYear, referenceDate);
-  }, [selectedYear, referenceDate]);
+    return getSeasonInfo(selectedYear);
+  }, [selectedYear]);
 
   // Check local server connection (optionally fetch files if explicitly requested via refresh button)
   const checkLocalServerFiles = async (loadIfFound = false) => {
@@ -76,22 +79,41 @@ export default function App() {
     setIsLoading(false);
   };
 
-  // Run on mount - check folder availability, but NO files are loaded automatically on initial load
-  useEffect(() => {
-    checkLocalServerFiles(false);
-  }, []);
+  // Load files matching season from GitHub (https://github.com/FabriziodelaRusta/Input_files/tree/main/participations)
+  const loadFilesFromGithub = async (targetYear: number) => {
+    setIsLoading(true);
+    try {
+      const result = await loadGithubSeasonFiles(targetYear, (msg) => setStatusMessage(msg));
+      if (result.detectedYears && result.detectedYears.length > 0) {
+        setAvailableYears(result.detectedYears);
+      }
 
-  // When selected year changes:
-  // If user uploaded their own CSVs, PRESERVE their files and re-filter! No demo data is loaded.
-  useEffect(() => {
-    if (loadedFiles.length > 0) {
-      setStatusMessage(
-        `Saison ${selectedYear} appliquée à vos fichiers importés (${loadedFiles.map((f) => f.filename).join(', ')}).`
-      );
+      if (result.loadedFiles.length > 0) {
+        setLoadedFiles(result.loadedFiles);
+        setIsCustomData(true);
+        setStatusMessage(
+          `Fichiers de la saison ${targetYear} chargés depuis GitHub : ${result.loadedFiles.map((f) => f.filename).join(', ')} (${result.loadedFiles.reduce((acc, f) => acc + f.count, 0)} lignes analysées).`
+        );
+      } else {
+        setStatusMessage(
+          `Aucun fichier correspondant trouvé sur GitHub pour la saison ${targetYear} (années ${targetYear - 1} et ${targetYear}).`
+        );
+      }
+    } catch (err: any) {
+      console.error('Erreur chargement GitHub:', err);
+      setStatusMessage(`Erreur lors du chargement des fichiers GitHub : ${err.message || err}`);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  // Run on mount and when selectedYear changes: load GitHub files automatically
+  useEffect(() => {
+    loadFilesFromGithub(selectedYear);
+    checkLocalServerFiles(false);
   }, [selectedYear]);
 
-  // Handle manual files upload
+  // Handle manual files upload: does NOT clear existing files, but APPENDS/MERGES new files
   const handleFilesSelected = async (files: FileList | File[]) => {
     const fileArray = Array.from(files);
     const newLoaded: { filename: string; content: string; count: number }[] = [];
@@ -108,11 +130,23 @@ export default function App() {
 
     if (newLoaded.length > 0) {
       setIsCustomData(true);
-      setLoadedFiles(newLoaded);
+      setLoadedFiles((prev) => {
+        const newFilenames = new Set(newLoaded.map((f) => f.filename));
+        const remaining = prev.filter((p) => !newFilenames.has(p.filename));
+        return [...remaining, ...newLoaded];
+      });
       setStatusMessage(
-        `Fichiers personnels importés : ${newLoaded.map((f) => f.filename).join(', ')} (${newLoaded.reduce((acc, c) => acc + c.count, 0)} lignes) — vos fichiers seront conservés lors du changement de saison.`
+        `Fichier(s) ajouté(s) : ${newLoaded.map((f) => f.filename).join(', ')} (${newLoaded.reduce((acc, c) => acc + c.count, 0)} lignes ajoutées).`
       );
     }
+  };
+
+  // Remove a specific file from local loaded files (never deletes anything on GitHub)
+  const handleRemoveFile = (filenameToRemove: string) => {
+    setLoadedFiles((prev) => prev.filter((f) => f.filename !== filenameToRemove));
+    setStatusMessage(
+      `Fichier ${filenameToRemove} retiré de l'analyse locale (le fichier sur GitHub reste intact).`
+    );
   };
 
   // Browser directory picker (File System Access API)
@@ -274,15 +308,15 @@ export default function App() {
           seasonInfo={seasonInfo}
           selectedYear={selectedYear}
           onChangeSelectedYear={setSelectedYear}
+          availableYears={availableYears}
           loadedFiles={loadedFiles}
           isServerLocalFound={isServerLocalFound}
           localDirPath={localDirPath}
           onFilesSelected={handleFilesSelected}
           onDirectoryPick={handleDirectoryPick}
-          onCheckLocalServer={() => checkLocalServerFiles(true)}
+          onCheckLocalServer={() => loadFilesFromGithub(selectedYear)}
+          onRemoveFile={handleRemoveFile}
           isLoading={isLoading}
-          referenceDate={referenceDate}
-          onChangeReferenceDate={setReferenceDate}
           totalBeforeFilter={totalBeforeFilter}
           totalAfterFilter={totalAfterFilter}
           excludedCount={excludedCount}
@@ -391,7 +425,7 @@ export default function App() {
 
       {/* Version Number centered at bottom as strictly requested */}
       <footer className="text-center py-6 text-slate-500 font-mono text-sm tracking-wide border-t border-slate-200/80 bg-white/50">
-        v1.7 - FabriziodelaRusta
+        v1.8 - FabriziodelaRusta
       </footer>
     </div>
   );

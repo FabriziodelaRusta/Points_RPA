@@ -74,5 +74,5 @@ export interface SeasonInfo {
   previousYear: number;
   expectedFiles: string[];
   ruleExplanation: string;
-  referenceDate: Date;
+  referenceDate?: Date;
 }
