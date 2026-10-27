@@ -7,6 +7,7 @@ import { MemberSelector } from './components/MemberSelector';
 import { DataSourceManager } from './components/DataSourceManager';
 import { LibreCalcTable } from './components/LibreCalcTable';
 import { SeasonStats } from './components/SeasonStats';
+import { checkSportTrophy } from './utils/trophy';
 import {
   ListOrdered,
   Table as TableIcon,
@@ -18,6 +19,7 @@ import {
   Printer,
   ChevronDown,
   Layers,
+  Trophy,
 } from 'lucide-react';
 
 export default function App() {
@@ -217,6 +219,15 @@ export default function App() {
     return processAllRecords(combinedRawRecords, selectedYear);
   }, [combinedRawRecords, selectedYear]);
 
+  // Trophy map for fast lookup
+  const trophyMap = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof checkSportTrophy>>();
+    for (const m of members) {
+      map.set(m.memberName, checkSportTrophy(m));
+    }
+    return map;
+  }, [members]);
+
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-800">
       {/* Top Application Header */}
@@ -392,7 +403,17 @@ export default function App() {
                         {r.dateStr}
                       </td>
                       <td className="py-2 px-4 text-slate-900 border-r border-slate-100 font-medium">
-                        {r.fullMemberName}
+                        <span className="inline-flex items-center gap-1">
+                          <span>{r.fullMemberName}</span>
+                          {trophyMap.get(r.fullMemberName)?.eligible && (
+                            <sup
+                              className="inline-flex items-center -translate-y-1 ml-0.5 text-amber-500 hover:text-amber-600 transition-transform hover:scale-125 cursor-help shrink-0"
+                              title="Trophée sportif : ≥ 20 sorties dont ≥ 10 randos et ≥ 1600 km"
+                            >
+                              <Trophy className="w-3.5 h-3.5 fill-amber-400 stroke-amber-600 drop-shadow-2xs" />
+                            </sup>
+                          )}
+                        </span>
                       </td>
                       <td className="py-2 px-4 text-slate-700 border-r border-slate-100">
                         {r.randoName}

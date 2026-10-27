@@ -1,6 +1,7 @@
 import React from 'react';
 import { MemberSummary, RandoRecord } from '../types/rpa';
-import { User, Calendar, Award, CheckCircle2, ChevronRight, X, Route } from 'lucide-react';
+import { User, Calendar, Award, CheckCircle2, ChevronRight, X, Route, Trophy } from 'lucide-react';
+import { checkSportTrophy } from '../utils/trophy';
 
 interface MemberSelectorProps {
   members: MemberSummary[];
@@ -43,9 +44,10 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({
             <option value="">-- Tous les membres ({members.length} inscrits) --</option>
             {members.map((m) => {
               const grandTotalKm = getMemberGrandTotalKm(m);
+              const trophy = checkSportTrophy(m);
               return (
                 <option key={m.memberName} value={m.memberName}>
-                  {m.memberName} — {m.totalRandos} rando{m.totalRandos > 1 ? 's' : ''} · {m.activeWeeksCount} point{m.activeWeeksCount > 1 ? 's' : ''} · {grandTotalKm} km
+                  {trophy.eligible ? '🏆 ' : ''}{m.memberName} — {m.totalRandos} rando{m.totalRandos > 1 ? 's' : ''} · {m.activeWeeksCount} point{m.activeWeeksCount > 1 ? 's' : ''} · {grandTotalKm} km
                 </option>
               );
             })}
@@ -63,7 +65,22 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({
               </div>
               <div>
                 <h3 className="font-bold text-slate-900 text-base flex flex-wrap items-center gap-2">
-                  <span>{selectedMember.memberName}</span>
+                  <span className="flex items-center gap-1">
+                    {selectedMember.memberName}
+                    {checkSportTrophy(selectedMember).eligible && (
+                      <sup
+                        className="inline-flex items-center -translate-y-1 ml-0.5 text-amber-500"
+                        title="Trophée sportif : ≥ 20 sorties dont ≥ 10 randos et ≥ 1600 km"
+                      >
+                        <Trophy className="w-4 h-4 fill-amber-400 stroke-amber-600 drop-shadow-2xs" />
+                      </sup>
+                    )}
+                  </span>
+                  {checkSportTrophy(selectedMember).eligible && (
+                    <span className="text-xs font-bold px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-300 rounded-full flex items-center gap-1 shadow-2xs">
+                      🏆 Trophée 20 randos / 1600 km
+                    </span>
+                  )}
                   <span className="text-xs font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full">
                     {selectedMember.activeWeeksCount} point{selectedMember.activeWeeksCount > 1 ? 's' : ''}
                   </span>

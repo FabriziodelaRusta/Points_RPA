@@ -12,7 +12,9 @@ import {
   Compass,
   Plane,
   Hotel,
+  Trophy,
 } from 'lucide-react';
+import { checkSportTrophy } from '../utils/trophy';
 
 interface LibreCalcTableProps {
   members: MemberSummary[];
@@ -486,6 +488,7 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
                 grandTotalKm,
               } = item;
               const isSelected = selectedMemberName === member.memberName;
+              const trophy = checkSportTrophy(member);
 
               return (
                 <React.Fragment key={member.memberName}>
@@ -524,8 +527,18 @@ export const LibreCalcTable: React.FC<LibreCalcTableProps> = ({
                           : 'bg-slate-50 text-slate-900'
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="truncate max-w-[155px]">{member.memberName}</span>
+                      <div className="flex items-center justify-between gap-1">
+                        <div className="flex items-center gap-1 min-w-0">
+                          <span className="truncate max-w-[145px]">{member.memberName}</span>
+                          {trophy.eligible && (
+                            <sup
+                              className="inline-flex items-center -translate-y-1 ml-0.5 text-amber-500 hover:text-amber-600 transition-transform hover:scale-125 cursor-help shrink-0"
+                              title={`Trophée sportif : ${trophy.totalQualifyingSorties} sorties (dont ${trophy.randos} randos et ${trophy.fleches} flèches/relais) · ${trophy.qualifyingKm} km (conditions remplies : ≥ 20 sorties dont ≥ 10 randos et ≥ 1600 km)`}
+                            >
+                              <Trophy className="w-3.5 h-3.5 fill-amber-400 stroke-amber-600 drop-shadow-2xs" />
+                            </sup>
+                          )}
+                        </div>
                         {isSelected && (
                           <Check className="w-3.5 h-3.5 text-emerald-700 shrink-0 ml-1" />
                         )}
