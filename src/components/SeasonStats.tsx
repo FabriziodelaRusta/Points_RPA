@@ -122,25 +122,38 @@ export const SeasonStats: React.FC<SeasonStatsProps> = ({
     let sejoursKm = 0;
     const sejoursPersons = new Set<string>();
 
+    const allActivePersons = new Set<string>();
+
     for (const member of members) {
+      if (member.totalRandos > 0) {
+        allActivePersons.add(member.memberName);
+      }
       if (member.specials) {
         if (member.specials.frCount > 0) {
           flechesRelaisCount += member.specials.frCount;
           flechesRelaisKm += member.specials.frKm;
           flechesRelaisPersons.add(member.memberName);
+          allActivePersons.add(member.memberName);
         }
         if (member.specials.voyageCount > 0) {
           voyagesCount += member.specials.voyageCount;
           voyagesKm += member.specials.voyageKm;
           voyagesPersons.add(member.memberName);
+          allActivePersons.add(member.memberName);
         }
         if (member.specials.sejourCount > 0) {
           sejoursCount += member.specials.sejourCount;
           sejoursKm += member.specials.sejourKm;
           sejoursPersons.add(member.memberName);
+          allActivePersons.add(member.memberName);
         }
       }
     }
+
+    const grandTotalKmAllTypes =
+      Math.round((totalKm + flechesRelaisKm + voyagesKm + sejoursKm) * 10) / 10;
+    const grandTotalRandosAllTypes =
+      totalRandos + flechesRelaisCount + voyagesCount + sejoursCount;
 
     return {
       flechesRelais: {
@@ -158,9 +171,14 @@ export const SeasonStats: React.FC<SeasonStatsProps> = ({
         km: Math.round(sejoursKm * 10) / 10,
         persons: sejoursPersons.size,
       },
+      grandTotal: {
+        totalSorties: grandTotalRandosAllTypes,
+        totalKm: grandTotalKmAllTypes,
+        persons: allActivePersons.size,
+      },
       hasAny: flechesRelaisCount > 0 || voyagesCount > 0 || sejoursCount > 0,
     };
-  }, [members]);
+  }, [members, totalKm, totalRandos]);
 
   return (
     <div className="bg-white border border-slate-200 rounded-lg shadow-xs p-4 sm:p-5">
@@ -172,7 +190,7 @@ export const SeasonStats: React.FC<SeasonStatsProps> = ({
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900">
-              Statistiques de la saison {selectedYear}
+              Statistiques de la saison {selectedYear} (Randos)
             </h3>
             <p className="text-xs text-slate-500">
               Synthèse globale · Période du 01/11/{selectedYear - 1} au 31/10/{selectedYear}
@@ -312,7 +330,7 @@ export const SeasonStats: React.FC<SeasonStatsProps> = ({
         </div>
       </div>
 
-      {/* Section Activités Spéciales (Fichiers FR & VOY) */}
+      {/* Section Activités Spéciales */}
       <div className="mt-4 pt-4 border-t border-slate-200">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-3">
           <div className="flex items-center gap-2">
@@ -320,7 +338,7 @@ export const SeasonStats: React.FC<SeasonStatsProps> = ({
               <Compass className="w-3.5 h-3.5" />
             </div>
             <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-              Flèches - Relais et autres, Voyages & Séjours · Fichiers FR ou VOY
+              Flèches - Relais et autres, Voyages & Séjours
             </h4>
           </div>
           <span className="text-[11px] text-slate-500 font-mono self-start sm:self-auto">
@@ -330,7 +348,8 @@ export const SeasonStats: React.FC<SeasonStatsProps> = ({
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {/* Grille de 4 cartes : Flèches-Relais et autres, Voyages, Séjours, et Total complet tout type */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
           {/* 1. Flèches - Relais et autres */}
           <div className="bg-purple-50/70 border border-purple-200 rounded-lg p-3.5 flex flex-col justify-between hover:bg-purple-50 transition-colors">
             <div className="flex items-center justify-between text-purple-700 mb-1.5">
@@ -398,6 +417,30 @@ export const SeasonStats: React.FC<SeasonStatsProps> = ({
                 </span>
                 <span className="font-mono font-bold text-amber-900 bg-amber-100/70 px-1.5 py-0.5 rounded">
                   {specialStats.sejours.km.toLocaleString('fr-FR')} km
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. Total complet tout type (à droite de Séjours) */}
+          <div className="bg-emerald-50/80 border border-emerald-300 rounded-lg p-3.5 flex flex-col justify-between hover:bg-emerald-50 transition-colors shadow-2xs">
+            <div className="flex items-center justify-between text-emerald-800 mb-1.5">
+              <span className="text-[11px] font-bold uppercase tracking-wider">
+                Total complet tout type
+              </span>
+              <Award className="w-4 h-4 text-emerald-700" />
+            </div>
+            <div>
+              <div className="text-2xl font-black text-emerald-950 font-mono">
+                {specialStats.grandTotal.totalSorties}
+              </div>
+              <div className="mt-2 pt-2 border-t border-emerald-200 flex items-center justify-between text-[11px] text-emerald-800">
+                <span>
+                  <strong>{specialStats.grandTotal.persons}</strong>{' '}
+                  {specialStats.grandTotal.persons > 1 ? 'personnes' : 'personne'}
+                </span>
+                <span className="font-mono font-bold text-emerald-950 bg-emerald-200/80 px-1.5 py-0.5 rounded">
+                  {specialStats.grandTotal.totalKm.toLocaleString('fr-FR')} km
                 </span>
               </div>
             </div>
