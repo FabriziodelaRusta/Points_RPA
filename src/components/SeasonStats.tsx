@@ -185,7 +185,7 @@ export const SeasonStats: React.FC<SeasonStatsProps> = ({
       {/* Title Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-4 border-b border-slate-200">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center">
             <BarChart3 className="w-4 h-4" />
           </div>
           <div>
@@ -221,32 +221,32 @@ export const SeasonStats: React.FC<SeasonStatsProps> = ({
         </div>
 
         {/* 2. Total des points */}
-        <div className="bg-emerald-50/60 border border-emerald-200 rounded-lg p-3 flex flex-col justify-between hover:bg-emerald-50 transition-colors">
-          <div className="flex items-center justify-between text-emerald-700 mb-1">
+        <div className="bg-blue-50/70 border border-blue-200 rounded-lg p-3 flex flex-col justify-between hover:bg-blue-50 transition-colors">
+          <div className="flex items-center justify-between text-blue-700 mb-1">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Points</span>
-            <Award className="w-4 h-4 text-emerald-700" />
+            <Award className="w-4 h-4 text-blue-700" />
           </div>
           <div>
-            <div className="text-xl font-black text-emerald-900 font-mono">
+            <div className="text-xl font-black text-blue-900 font-mono">
               {totalPoints}
             </div>
-            <div className="text-[11px] text-emerald-700 truncate" title="Points cumulés (x)">
+            <div className="text-[11px] text-blue-700 truncate" title="Points cumulés (x)">
               Points attribués (x)
             </div>
           </div>
         </div>
 
         {/* 3. Nombre de randos */}
-        <div className="bg-blue-50/60 border border-blue-200 rounded-lg p-3 flex flex-col justify-between hover:bg-blue-50 transition-colors">
-          <div className="flex items-center justify-between text-blue-700 mb-1">
+        <div className="bg-indigo-50/60 border border-indigo-200 rounded-lg p-3 flex flex-col justify-between hover:bg-indigo-50 transition-colors">
+          <div className="flex items-center justify-between text-indigo-700 mb-1">
             <span className="text-[11px] font-semibold uppercase tracking-wider">Randos</span>
-            <Bike className="w-4 h-4 text-blue-700" />
+            <Bike className="w-4 h-4 text-indigo-700" />
           </div>
           <div>
-            <div className="text-xl font-black text-blue-900 font-mono">
+            <div className="text-xl font-black text-indigo-900 font-mono">
               {totalRandos}
             </div>
-            <div className="text-[11px] text-blue-700 truncate" title="Participations totales">
+            <div className="text-[11px] text-indigo-700 truncate" title="Participations totales">
               Participations
             </div>
           </div>
@@ -423,23 +423,23 @@ export const SeasonStats: React.FC<SeasonStatsProps> = ({
           </div>
 
           {/* 4. Total complet tout type (à droite de Séjours) */}
-          <div className="bg-emerald-50/80 border border-emerald-300 rounded-lg p-3.5 flex flex-col justify-between hover:bg-emerald-50 transition-colors shadow-2xs">
-            <div className="flex items-center justify-between text-emerald-800 mb-1.5">
+          <div className="bg-blue-50/80 border border-blue-300 rounded-lg p-3.5 flex flex-col justify-between hover:bg-blue-50 transition-colors shadow-2xs">
+            <div className="flex items-center justify-between text-blue-800 mb-1.5">
               <span className="text-[11px] font-bold uppercase tracking-wider">
                 Total complet tout type
               </span>
-              <Award className="w-4 h-4 text-emerald-700" />
+              <Award className="w-4 h-4 text-blue-700" />
             </div>
             <div>
-              <div className="text-2xl font-black text-emerald-950 font-mono">
+              <div className="text-2xl font-black text-blue-950 font-mono">
                 {specialStats.grandTotal.totalSorties}
               </div>
-              <div className="mt-2 pt-2 border-t border-emerald-200 flex items-center justify-between text-[11px] text-emerald-800">
+              <div className="mt-2 pt-2 border-t border-blue-200 flex items-center justify-between text-[11px] text-blue-800">
                 <span>
                   <strong>{specialStats.grandTotal.persons}</strong>{' '}
                   {specialStats.grandTotal.persons > 1 ? 'personnes' : 'personne'}
                 </span>
-                <span className="font-mono font-bold text-emerald-950 bg-emerald-200/80 px-1.5 py-0.5 rounded">
+                <span className="font-mono font-bold text-blue-950 bg-blue-200/80 px-1.5 py-0.5 rounded">
                   {specialStats.grandTotal.totalKm.toLocaleString('fr-FR')} km
                 </span>
               </div>

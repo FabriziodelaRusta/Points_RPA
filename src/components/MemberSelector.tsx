@@ -39,7 +39,7 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({
             id="member-dropdown"
             value={selectedMemberName || ''}
             onChange={(e) => onSelectMember(e.target.value ? e.target.value : null)}
-            className="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-md px-3 py-2.5 pr-8 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 transition-colors font-medium cursor-pointer"
+            className="w-full bg-slate-50 border border-slate-300 text-slate-800 text-sm rounded-md px-3 py-2.5 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors font-medium cursor-pointer"
           >
             <option value="">-- Tous les membres ({members.length} inscrits) --</option>
             {members.map((m) => {
@@ -60,7 +60,7 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({
         <div className="mt-4 pt-4 border-t border-slate-200 bg-slate-50/70 -mx-4 -mb-4 p-4 rounded-b-lg">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+              <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
                 {selectedMember.memberName.slice(0, 2).toUpperCase()}
               </div>
               <div>
@@ -81,14 +81,14 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({
                       🏆 Trophée 20 randos / 1600 km
                     </span>
                   )}
-                  <span className="text-xs font-semibold px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full">
+                  <span className="text-xs font-semibold px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
                     {selectedMember.activeWeeksCount} point{selectedMember.activeWeeksCount > 1 ? 's' : ''}
                   </span>
                   <span className="text-xs font-semibold px-2 py-0.5 bg-slate-200 text-slate-800 rounded-full">
                     {selectedMember.totalRandos} rando{selectedMember.totalRandos > 1 ? 's' : ''}
                   </span>
                   <span
-                    className="text-xs font-semibold px-2 py-0.5 bg-emerald-200/70 text-emerald-900 rounded-full"
+                    className="text-xs font-semibold px-2 py-0.5 bg-blue-200/70 text-blue-900 rounded-full"
                     title="Total km : randos + séjours + voyages + flèches et relais et autres"
                   >
                     {getMemberGrandTotalKm(selectedMember)} km total
@@ -129,7 +129,7 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({
                 <button
                   type="button"
                   onClick={() => onScrollToMember(selectedMember.memberName)}
-                  className="px-2.5 py-1.5 text-xs font-medium bg-emerald-700 hover:bg-emerald-800 text-white rounded-md transition-colors flex items-center gap-1 shadow-xs cursor-pointer"
+                  className="px-2.5 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors flex items-center gap-1 shadow-xs cursor-pointer"
                 >
                   Localiser dans Calc
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -162,7 +162,7 @@ export const MemberSelector: React.FC<MemberSelectorProps> = ({
                     <span className="text-slate-300">|</span>
                     <span className="text-slate-900 font-medium">{rec.randoName}</span>
                     {rec.km > 0 && (
-                      <span className="text-emerald-700 font-mono text-[11px] bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                      <span className="text-blue-700 font-mono text-[11px] bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200">
                         {rec.km} km
                       </span>
                     )}

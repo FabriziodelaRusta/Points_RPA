@@ -7,6 +7,7 @@ import { MemberSelector } from './components/MemberSelector';
 import { DataSourceManager } from './components/DataSourceManager';
 import { LibreCalcTable } from './components/LibreCalcTable';
 import { SeasonStats } from './components/SeasonStats';
+import { ClubColorStripe } from './components/ClubColorStripe';
 import { checkSportTrophy } from './utils/trophy';
 import {
   ListOrdered,
@@ -229,44 +230,58 @@ export default function App() {
   }, [members]);
 
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-800">
-      {/* Top Application Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 py-3 sm:px-6 flex flex-col md:flex-row md:items-center justify-between gap-3">
-          {/* Main Title as requested with official RPA logo */}
-          <div className="flex items-center gap-3">
-            <img
-              src="https://fabriziodelarusta.github.io/icons/logo-RPA_bleu.png"
-              alt="Logo Roue Princière d'Allain"
-              className="w-12 h-12 object-contain shrink-0 drop-shadow-xs"
-              loading="eager"
-            />
-            <div>
-              <h1 className="text-lg sm:text-xl font-bold text-slate-900 leading-tight">
-                Calcul des points et des km pour les membres de la Roue Princière d'Allain
-              </h1>
-              <p className="text-xs text-slate-500 flex items-center gap-2">
-                <span>Club cyclotourisme & randonnées</span>
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900 antialiased selection:bg-blue-600 selection:text-white">
+      {/* Top Application Header conforming to RPA graphic charter */}
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-xs">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex flex-wrap items-center justify-between gap-3">
+          {/* Main Title as requested with official RPA logo, stripe and badges (matching Comptabilisation-des-points-non-FFBC) */}
+          <div className="flex items-center gap-2 sm:gap-2.5 bg-slate-50/80 sm:bg-transparent p-1.5 sm:p-0 rounded-xl border sm:border-0 border-slate-200/70">
+            <ClubColorStripe className="h-9 sm:h-12" />
+            <div className="w-9 h-11 sm:w-12 sm:h-14 shrink-0 flex items-center justify-center relative">
+              <img
+                src="https://fabriziodelarusta.github.io/icons/logo-RPA_bleu.png"
+                alt="Logo Club RPA"
+                referrerPolicy="no-referrer"
+                className="max-h-full max-w-full object-contain filter drop-shadow-xs"
+                loading="eager"
+              />
+            </div>
+            <div className="min-w-0 pr-1">
+              <div className="flex items-center gap-2">
+                <h1 className="text-sm sm:text-lg font-black text-slate-900 tracking-tight leading-tight">
+                  Calcul des points et des km pour les membres de la Roue Princière d'Allain
+                </h1>
+                <span className="text-[10px] sm:text-xs font-semibold px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-800">
+                  v1.8
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm font-bold text-blue-600 leading-tight">
+                Roue Princière d'Allain
+              </p>
+              <div className="text-[10px] sm:text-xs text-slate-500 mt-0.5 flex flex-wrap items-center gap-1.5">
+                <span>Club affilié FFBC</span>
                 <span>·</span>
-                <span>Allain (Meurthe-et-Moselle)</span>
+                <span className="text-blue-800 font-bold bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200">
+                  Points RPA
+                </span>
                 <span>·</span>
-                <span className="text-emerald-800 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                <span className="text-blue-800 font-bold bg-blue-50 px-1.5 py-0.2 rounded border border-blue-200">
                   Saison {selectedYear} (du 01/11/{selectedYear - 1} au 31/10/{selectedYear})
                 </span>
-              </p>
+              </div>
             </div>
           </div>
 
           {/* Quick Actions & View Toggles */}
           <div className="flex items-center gap-2 self-end md:self-auto">
-            <div className="bg-slate-100 p-1 rounded-lg border border-slate-200 flex items-center gap-1 text-xs">
+            <div className="bg-slate-100 p-1 rounded-xl border border-slate-200/80 flex items-center gap-1 text-xs">
               <button
                 type="button"
                 onClick={() => setActiveTab('calc')}
-                className={`px-3 py-1.5 rounded-md font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
                   activeTab === 'calc'
-                    ? 'bg-white text-emerald-800 shadow-xs font-semibold'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-blue-800 shadow-xs font-semibold'
+                    : 'text-slate-600 hover:text-blue-700'
                 }`}
               >
                 <TableIcon className="w-3.5 h-3.5" />
@@ -275,10 +290,10 @@ export default function App() {
               <button
                 type="button"
                 onClick={() => setActiveTab('chronological')}
-                className={`px-3 py-1.5 rounded-md font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1.5 cursor-pointer ${
                   activeTab === 'chronological'
-                    ? 'bg-white text-emerald-800 shadow-xs font-semibold'
-                    : 'text-slate-600 hover:text-slate-900'
+                    ? 'bg-white text-blue-800 shadow-xs font-semibold'
+                    : 'text-slate-600 hover:text-blue-700'
                 }`}
               >
                 <ListOrdered className="w-3.5 h-3.5" />
@@ -289,7 +304,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => window.print()}
-              className="p-2 text-slate-600 hover:text-slate-900 bg-white hover:bg-slate-50 rounded-lg border border-slate-200 shadow-2xs transition-colors cursor-pointer"
+              className="p-2 text-slate-600 hover:text-blue-700 bg-white hover:bg-slate-50 rounded-lg border border-slate-200 shadow-2xs transition-colors cursor-pointer"
               title="Imprimer la feuille de calcul"
             >
               <Printer className="w-4 h-4" />
@@ -302,12 +317,12 @@ export default function App() {
       <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 flex-1 w-full space-y-6">
         {/* Status notification if any */}
         {statusMessage && (
-          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs px-4 py-2 rounded-md flex items-center justify-between shadow-2xs">
+          <div className="bg-blue-50 border border-blue-200 text-blue-900 text-xs px-4 py-2.5 rounded-lg flex items-center justify-between shadow-2xs">
             <span>{statusMessage}</span>
             <button
               type="button"
               onClick={() => setStatusMessage('')}
-              className="text-emerald-700 hover:text-emerald-950 font-bold ml-3 cursor-pointer"
+              className="text-blue-700 hover:text-blue-950 font-bold ml-3 cursor-pointer"
             >
               ×
             </button>
@@ -356,7 +371,7 @@ export default function App() {
             <div className="p-4 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
               <div>
                 <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                  <ListOrdered className="w-4 h-4 text-emerald-700" />
+                  <ListOrdered className="w-4 h-4 text-blue-600" />
                   Randonnées de la saison {selectedYear} regroupées et triées par date (1er champ) et par nom (3e champ)
                 </h3>
                 <p className="text-xs text-slate-500">
@@ -392,8 +407,8 @@ export default function App() {
                   {sortedRecords.map((r, i) => (
                     <tr
                       key={r.id || i}
-                      className={`hover:bg-emerald-50/50 transition-colors ${
-                        selectedMemberName === r.fullMemberName ? 'bg-emerald-100/70 font-semibold' : ''
+                      className={`hover:bg-blue-50/50 transition-colors ${
+                        selectedMemberName === r.fullMemberName ? 'bg-blue-100/70 font-semibold' : ''
                       }`}
                     >
                       <td className="py-2 px-3 text-center text-slate-400 font-mono border-r border-slate-100">
@@ -418,7 +433,7 @@ export default function App() {
                       <td className="py-2 px-4 text-slate-700 border-r border-slate-100">
                         {r.randoName}
                       </td>
-                      <td className="py-2 px-3 text-center text-emerald-800 font-mono border-r border-slate-100 font-semibold">
+                      <td className="py-2 px-3 text-center text-blue-800 font-mono border-r border-slate-100 font-semibold">
                         {r.km > 0 ? `${r.km} km` : '-'}
                       </td>
                       <td className="py-2 px-4 text-center text-slate-600 border-r border-slate-100 font-mono text-[11px]">
@@ -444,9 +459,16 @@ export default function App() {
         />
       </main>
 
-      {/* Version Number centered at bottom as strictly requested */}
-      <footer className="text-center py-6 text-slate-500 font-mono text-sm tracking-wide border-t border-slate-200/80 bg-white/50">
-        v1.8 - FabriziodelaRusta
+      {/* Footer strictly conforming to Comptabilisation-des-points-non-FFBC */}
+      <footer className="mt-auto border-t border-slate-200 bg-white py-4 px-4 text-center text-xs text-slate-500 space-y-1 select-none">
+        <div id="footer" className="font-medium text-slate-700">
+          v<sub id="version" className="font-bold text-blue-600">1.8</sub> — Fabrizio de la Rusta
+        </div>
+        <div className="text-[11px] text-slate-400 flex flex-wrap items-center justify-center gap-2">
+          <span>Roue Princière d'Allain (RPA)</span>
+          <span>·</span>
+          <span>Club affilié FFBC (Fédération Francophone Belge du Cyclotourisme)</span>
+        </div>
       </footer>
     </div>
   );

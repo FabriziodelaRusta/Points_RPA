@@ -66,7 +66,7 @@ export const DataSourceManager: React.FC<DataSourceManagerProps> = ({
       {/* 1. Header with Year Selector, Dynamic Dropdown & Season Boundary with Blue Help */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-slate-100">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+          <div className="w-10 h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
             <Layers className="w-5 h-5" />
           </div>
 
@@ -87,7 +87,7 @@ export const DataSourceManager: React.FC<DataSourceManagerProps> = ({
                 id="year-select"
                 value={selectedYear}
                 onChange={(e) => onChangeSelectedYear(Number(e.target.value))}
-                className="bg-emerald-50 border border-emerald-300 font-bold text-emerald-900 text-sm rounded px-3 py-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-600"
+                className="bg-blue-50 border border-blue-300 font-bold text-blue-900 text-sm rounded px-3 py-1.5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-600"
               >
                 {displayedYears.map((yr) => (
                   <option key={yr} value={yr}>
@@ -110,8 +110,8 @@ export const DataSourceManager: React.FC<DataSourceManagerProps> = ({
             {/* Période affichée avec le bouton Help bleu positionné à sa droite */}
             <div className="flex items-center gap-1.5 text-xs text-slate-700 bg-slate-50 px-2.5 py-1 rounded border border-slate-200">
               <span>
-                Période : <span className="text-emerald-800 font-bold">01/11/{selectedYear - 1}</span> au{' '}
-                <span className="text-emerald-800 font-bold">31/10/{selectedYear}</span>
+                Période : <span className="text-blue-800 font-bold">01/11/{selectedYear - 1}</span> au{' '}
+                <span className="text-blue-800 font-bold">31/10/{selectedYear}</span>
               </span>
               <button
                 type="button"
@@ -129,7 +129,7 @@ export const DataSourceManager: React.FC<DataSourceManagerProps> = ({
         {/* Compteur de sorties retenues */}
         <div className="flex items-center gap-3 self-start md:self-auto">
           <div className="text-xs bg-slate-100 text-slate-800 px-3 py-1.5 rounded-md border border-slate-200 font-medium flex items-center gap-1.5 shadow-2xs">
-            <Filter className="w-3.5 h-3.5 text-emerald-700" />
+            <Filter className="w-3.5 h-3.5 text-blue-600" />
             <span>
               <strong>{totalAfterFilter}</strong> sorties retenues pour {selectedYear}
             </span>
@@ -245,7 +245,7 @@ export const DataSourceManager: React.FC<DataSourceManagerProps> = ({
                 key={f.filename}
                 className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 border border-slate-300 rounded font-mono text-slate-800 shadow-2xs hover:bg-slate-50 transition-colors"
               >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                <FileSpreadsheet className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                 <span className="font-semibold">{f.filename}</span>
                 <span className="text-slate-500 font-sans text-[11px]">({f.count} lignes brutes)</span>
                 <button
