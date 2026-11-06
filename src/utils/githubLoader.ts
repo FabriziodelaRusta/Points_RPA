@@ -1,4 +1,4 @@
-import { parseRpaCsv } from './csvParser';
+import { parseRpaCsv, isSpecialActivityFile } from './csvParser';
 
 export interface GithubFileEntry {
   name: string;
@@ -102,14 +102,29 @@ export async function loadGithubSeasonFiles(
 
   // Années détectées dynamiquement dans tous les fichiers présents sur GitHub
   const detectedYears = extractYearsFromEntries(fileEntries);
+  if (!detectedYears.includes(endYear)) {
+    detectedYears.push(endYear);
+    detectedYears.sort((a, b) => a - b);
+  }
 
   // 2. Filtrer les fichiers selon la règle stricte :
-  // - Nom contient startYear (ex. 2025 pour saison 2026)
-  // - OU nom contient endYear (ex. 2026 pour saison 2026, si différent)
+  // - Pour les randonnées régulières : nom contient startYear (ex. 2026 pour saison 2027) OU endYear (2027)
+  // - Pour les fichiers FR_VOY (activités spéciales) :
+  //   Règle utilisateur : "pour la periode comme aujourd'hui (01/11/xx a 31/10/xx) on ne doit pas reprendre FR_VOY yyyy-1"
+  //   Un fichier FR / VOY n'est chargé que s'il correspond à l'année de la saison (endYear = selectedYear), jamais yyyy-1.
   const selectedEntries = fileEntries.filter((item) => {
     const name = item.name || '';
     const isCsv = name.toLowerCase().endsWith('.csv') || name.toLowerCase().endsWith('.cvs');
     if (!isCsv) return false;
+
+    // Exclusion explicite des fichiers de solde (ex: RPA_participations_2026_solde.csv)
+    if (/solde/i.test(name)) return false;
+
+    const isSpecial = isSpecialActivityFile(name) || /fr_voy|voy|sejour|fleche/i.test(name);
+    if (isSpecial) {
+      // Pour les activités spéciales, on retient uniquement le fichier de l'année sélectionnée (endYear)
+      return name.includes(endYearStr);
+    }
 
     const containsStart = name.includes(startYearStr);
     const containsEnd = endYear !== startYear && name.includes(endYearStr);

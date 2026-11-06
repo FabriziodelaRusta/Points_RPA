@@ -10,6 +10,17 @@ import { SeasonInfo, WeekInfo } from '../types/rpa';
  *   - Lignes de (YYYY - 1).csv avec date >= 1er novembre (YYYY - 1)
  *   - Lignes de YYYY.csv avec date < 1er novembre YYYY
  */
+/**
+ * Calcule l'année de la saison active par défaut à la date de référence (aujourd'hui) :
+ * - Si le mois est >= 10 (novembre ou décembre), la saison courante est l'année civile + 1.
+ * - Si le mois est < 10 (janvier à octobre), la saison courante est l'année civile en cours.
+ */
+export function getCurrentSeasonYear(refDate: Date = new Date()): number {
+  const month = refDate.getMonth();
+  const year = refDate.getFullYear();
+  return month >= 10 ? year + 1 : year;
+}
+
 export function getSeasonInfo(targetYear: number = 2026): SeasonInfo {
   const currentYear = targetYear;
   const previousYear = targetYear - 1;

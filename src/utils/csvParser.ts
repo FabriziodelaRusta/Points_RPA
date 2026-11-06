@@ -502,10 +502,22 @@ export function processAllRecords(allRecords: RandoRecord[], targetYear?: number
   // Filtrage selon la saison demandée par l'utilisateur
   const filteredRecords = targetYear
     ? allRecords.filter((rec) => {
-        if (isDateInSeason(rec.parsedDate, targetYear)) return true;
-        // Si c'est un fichier FR / VOY de l'année sélectionnée
-        if (rec.isSpecialActivity && rec.parsedDate.getFullYear() === targetYear) return true;
-        return false;
+        // Règle stricte utilisateur : pour la période (01/11/xx à 31/10/xx),
+        // on ne doit PAS reprendre FR_VOY yyyy-1.
+        if (rec.isSpecialActivity) {
+          const matchYear = rec.sourceFile.match(/\b(20\d\d)\b/);
+          if (matchYear) {
+            const fileYr = parseInt(matchYear[1], 10);
+            if (fileYr === targetYear - 1) {
+              return false; // Exclusion stricte de FR_VOY yyyy-1
+            }
+          }
+          if (rec.parsedDate.getFullYear() === targetYear) return true;
+          return isDateInSeason(rec.parsedDate, targetYear);
+        }
+
+        // Pour les randonnées régulières : lignes >= 01/11/(targetYear - 1) et < 01/11/targetYear
+        return isDateInSeason(rec.parsedDate, targetYear);
       })
     : allRecords;
 

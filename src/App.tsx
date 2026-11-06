@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { RandoRecord, MemberSummary, WeekInfo, SeasonInfo } from './types/rpa';
-import { getSeasonInfo } from './utils/dateAndWeek';
+import { getSeasonInfo, getCurrentSeasonYear } from './utils/dateAndWeek';
 import { parseRpaCsv, processAllRecords, readUploadedFileAsText } from './utils/csvParser';
 import { loadGithubSeasonFiles } from './utils/githubLoader';
 import { MemberSelector } from './components/MemberSelector';
@@ -24,9 +24,9 @@ import {
 } from 'lucide-react';
 
 export default function App() {
-  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [selectedYear, setSelectedYear] = useState<number>(getCurrentSeasonYear());
   const [availableYears, setAvailableYears] = useState<number[]>([
-    2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026,
+    2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027,
   ]);
   const [loadedFiles, setLoadedFiles] = useState<{ filename: string; content: string; count: number }[]>([]);
   const [isCustomData, setIsCustomData] = useState<boolean>(true);
@@ -122,6 +122,7 @@ export default function App() {
     const newLoaded: { filename: string; content: string; count: number }[] = [];
 
     for (const file of fileArray) {
+      if (/solde/i.test(file.name)) continue; // Exclusion explicite des fichiers de solde
       const text = await readUploadedFileAsText(file);
       const records = parseRpaCsv(text, file.name);
       newLoaded.push({
@@ -252,7 +253,7 @@ export default function App() {
                   Calcul des points et des km pour les membres de la Roue Princière d'Allain
                 </h1>
                 <span className="text-[10px] sm:text-xs font-semibold px-1.5 py-0.5 rounded-md bg-blue-100 text-blue-800">
-                  v1.8
+                  v1.9
                 </span>
               </div>
               <p className="text-xs sm:text-sm font-bold text-blue-600 leading-tight">
@@ -462,7 +463,7 @@ export default function App() {
       {/* Footer strictly conforming to Comptabilisation-des-points-non-FFBC */}
       <footer className="mt-auto border-t border-slate-200 bg-white py-4 px-4 text-center text-xs text-slate-500 space-y-1 select-none">
         <div id="footer" className="font-medium text-slate-700">
-          v<sub id="version" className="font-bold text-blue-600">1.8</sub> — Fabrizio de la Rusta
+          v<sub id="version" className="font-bold text-blue-600">1.9</sub> — Fabrizio de la Rusta
         </div>
         <div className="text-[11px] text-slate-400 flex flex-wrap items-center justify-center gap-2">
           <span>Roue Princière d'Allain (RPA)</span>
